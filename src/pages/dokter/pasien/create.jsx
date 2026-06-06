@@ -536,7 +536,7 @@ export default function CreatePasienDok() {
               </div>
 
               {/* Tanggal Lahir + Jenis Kelamin */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <FieldIcon>

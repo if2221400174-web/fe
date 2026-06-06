@@ -74,7 +74,7 @@ export default function Login() {
               />
             </div>
             <p className="text-sm text-green-100/75">
-              Sistem Informasi Praktek Umum Mandiri Dr. Rowi
+              Sistem Informasi Praktek Dokter Umum dr. Rowi
             </p>
           </div>
 

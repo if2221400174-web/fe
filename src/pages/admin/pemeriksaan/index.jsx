@@ -7,8 +7,6 @@ import { getObat } from "../../../_sevices/obat";
 import { getTransaksiByPemeriksaan, updateTransaksi } from "../../../_sevices/transaksi";
 import { userImageStorage } from "../../../_api";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 const formatTanggal = (tanggal) =>
   new Date(tanggal).toLocaleDateString("id-ID", {
     day: "numeric",
@@ -28,8 +26,6 @@ const initialsOf = (name = "") =>
     .slice(0, 2);
 
 const emptyRow = () => ({ id: Date.now(), obat_id: "", aturan_pakai: "", isNew: true });
-
-// ─── Sync transaksi helper ─────────────────────────────────────────────────────
 
 const syncTransaksiAfterResep = async (pemeriksaanId, updatedDetailResep, daftarObat) => {
   try {
@@ -53,8 +49,6 @@ const syncTransaksiAfterResep = async (pemeriksaanId, updatedDetailResep, daftar
     console.warn("[syncTransaksi] Dilewati:", err?.message ?? err);
   }
 };
-
-// ─── ObatRow ──────────────────────────────────────────────────────────────────
 
 function ObatRow({ row, daftarObat, onChange, onRemove, showRemove }) {
   return (
@@ -274,8 +268,6 @@ function EditPemeriksaanPanel({ pemeriksaan, onSaved, onCancel }) {
   );
 }
 
-// ─── EditResepPanel ───────────────────────────────────────────────────────────
-
 function EditResepPanel({ pemeriksaanId, daftarObatResep, daftarObat, onSaved, onCancel }) {
   const [rows, setRows] = useState(
     daftarObatResep.map((d) => ({
@@ -471,8 +463,6 @@ function IconButton({ onClick, disabled, label, variant = "default", children })
   );
 }
 
-// ─── ConfirmInline ────────────────────────────────────────────────────────────
-
 function ConfirmInline({ message, onConfirm, onCancel, loading, confirmLabel = "Ya, Hapus" }) {
   return (
     <div className="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-1.5">
@@ -488,8 +478,6 @@ function ConfirmInline({ message, onConfirm, onCancel, loading, confirmLabel = "
     </div>
   );
 }
-
-// ─── KartuPemeriksaan ─────────────────────────────────────────────────────────
 
 function KartuPemeriksaan({
   pemeriksaan,
@@ -937,7 +925,7 @@ export default function AdminPemeriksaan() {
               Riwayat Pemeriksaan
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Catatan pemeriksaan Praktek Umum Mandiri Dr. Rowi
+              Catatan pemeriksaan Praktek Dokter Umum dr. Rowi
             </p>
           </div>
         </div>

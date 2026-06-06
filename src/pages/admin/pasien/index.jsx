@@ -42,7 +42,7 @@ export default function AdminPasien() {
               Manajemen Pasien
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Kelola daftar pasien Praktek Umum Mandiri Dr. Rowi
+              Kelola daftar pasien Praktek Dokter Umum dr. Rowi
             </p>
           </div>
 

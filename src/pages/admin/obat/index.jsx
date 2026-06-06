@@ -58,7 +58,7 @@ export default function AdminObat() {
               Manajemen Obat
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Kelola daftar obat di Praktek Umum Mandiri Dr. Rowi
+              Kelola daftar obat di Praktek Dokter Umum dr. Rowi
             </p>
           </div>
 

@@ -870,7 +870,7 @@ export default function EditPasien() {
               </div>
 
               {/* Field: Tanggal Lahir + Jenis Kelamin (2 kolom) */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Tanggal Lahir */}
                 <div>
                   <div className="flex items-center gap-2 mb-3">

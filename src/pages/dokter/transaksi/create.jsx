@@ -313,28 +313,31 @@ export default function CreateTransaksiDok() {
         )}
 
         {/* ── Aksi ── */}
-        <div className="flex items-center justify-between gap-3">
-          <Link
-            to="/dokter/pemeriksaan"
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-green-600 dark:text-green-300 border border-green-200 dark:border-green-600 rounded-lg hover:bg-green-100 dark:hover:bg-green-700 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-            </svg>
-            Pemeriksaan
-          </Link>
-          <Link
-            to="/dokter/transaksi"
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-green-600 dark:text-green-300 border border-green-200 dark:border-green-600 rounded-lg hover:bg-green-100 dark:hover:bg-green-700 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-            </svg>
-            Transaksi
-          </Link>
-
-          {/* Tombol konfirmasi hanya muncul jika transaksi belum ada */}
-          {!sudahBayar && (
+        <div className="flex items-center justify-end gap-3">
+          {sudahBayar ? (
+            // Transaksi sudah dikonfirmasi → tampilkan tombol navigasi saja
+            <>
+              <Link
+                to="/dokter/pemeriksaan"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-green-600 dark:text-green-300 border border-green-200 dark:border-green-600 rounded-lg hover:bg-green-100 dark:hover:bg-green-700 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Pemeriksaan
+              </Link>
+              <Link
+                to="/dokter/transaksi"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-green-600 dark:text-green-300 border border-green-200 dark:border-green-600 rounded-lg hover:bg-green-100 dark:hover:bg-green-700 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Transaksi
+              </Link>
+            </>
+          ) : (
+            // Transaksi belum dikonfirmasi → tampilkan tombol konfirmasi saja
             <button
               type="button"
               onClick={handleSubmit}
@@ -357,7 +360,6 @@ export default function CreateTransaksiDok() {
             </button>
           )}
         </div>
-
       </div>
     </section>
   );

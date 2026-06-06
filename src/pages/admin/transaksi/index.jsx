@@ -80,7 +80,7 @@ export default function AdminTransaksi() {
             Riwayat Transaksi
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Transaksi pembayaran Praktek Umum Mandiri Dr. Rowi
+            Transaksi pembayaran Praktek Dokter Umum dr. Rowi
           </p>
         </div>
         <div className="flex flex-items justify-between flex-row sm:items-center gap-3 mb-4">

@@ -103,7 +103,7 @@ export default function AdminLayout() {
                     src={logokesehtan}
                     />
                   </div>
-                  <span className="hidden sm:block text-lg lg:text-xl font-semibold text-gray-100 ">Praktek Umum Mandiri Dr. Rowi</span>
+                  <span className="hidden sm:block text-lg lg:text-xl font-semibold text-gray-100 ">Praktek Dokter Umum dr. Rowi</span>
                 </Link>
               </div>
 
