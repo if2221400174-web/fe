@@ -828,7 +828,7 @@ export default function EditPasien() {
             <div className="p-6 space-y-6">
 
               {/* Kotak info mode edit */}
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex flex-col justify-content center">
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex flex-col items-center justify-center">
                 <div className="flex gap-3">
                   <div>
                     <h3 className="text-sm text-center font-semibold text-green-900 dark:text-green-300 mb-1">Mode Edit</h3>
