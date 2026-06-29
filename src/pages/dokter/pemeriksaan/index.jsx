@@ -774,9 +774,9 @@ function KartuPemeriksaan({
               <span>Lakukan Transaksi</span>
             </Link>
           </div>
-                  </div>
-                )}
-              </div>
+        </div>
+        )}
+    </div>
   );
 }
 
