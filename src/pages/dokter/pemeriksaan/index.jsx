@@ -238,7 +238,7 @@ function EditPemeriksaanPanel({ pemeriksaan, onSaved, onCancel }) {
         </div>
         <div>
           <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-            Catatan Dokter <span className="text-gray-400">(opsional)</span>
+            Catatan Edukasi <span className="text-gray-400">(opsional)</span>
           </label>
           <textarea rows={2} value={form.catatan}
             onChange={(e) => handleChange("catatan", e.target.value)}
@@ -594,7 +594,7 @@ function KartuPemeriksaan({
           {pemeriksaan.catatan && (
             <div className="mx-5 mb-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-lg px-4 py-3">
               <p className="text-xs font-medium text-bold text-center text-green-900 dark:text-green-400 uppercase tracking-wider mb-1.5">
-                Catatan Dokter
+                Catatan Edukasi
               </p>
               <p className="text-sm text-center text-green-700 dark:text-green-200 leading-relaxed">
                 {pemeriksaan.catatan}
