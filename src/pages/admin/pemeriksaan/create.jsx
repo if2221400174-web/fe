@@ -207,7 +207,7 @@ export default function CreatePemeriksaan() {
               </div>
               <div>
                 <label htmlFor="catatan" className="block text-sm font-semibold text-gray-900 dark:text-white mb-1">
-                  Catatan
+                  Catatan Edukasi
                 </label>
                 <input
                   type="text"
