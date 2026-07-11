@@ -20,17 +20,12 @@ API.interceptors.request.use(config => {
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      
+    const isLoginRequest = error.config?.url === "/login";
+    if (error.response && error.response.status === 401 && !isLoginRequest) {
       console.log("Token expired / unauthorized");
-
-      // hapus token
       localStorage.removeItem("accessToken");
-
-      // redirect ke login
       window.location.href = "/login";
     }
-
     return Promise.reject(error);
   }
 );

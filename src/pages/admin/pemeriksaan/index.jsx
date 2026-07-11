@@ -442,7 +442,7 @@ function EditResepPanel({ pemeriksaanId, daftarObatResep, daftarObat, onSaved, o
 
 function IconButton({ onClick, disabled, label, variant = "default", children }) {
   const base =
-    "relative group p-1.5 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1";
+    "relative group rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1";
   const variants = {
     blue: "text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 focus:ring-blue-400",
     red: "text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 focus:ring-red-400",
@@ -602,12 +602,6 @@ function KartuPemeriksaan({
                 </svg>
               </IconButton>
             </div>
-            <svg
-              className={`w-5 h-5 text-gray-400 transition-transform duration-200 flex-shrink-0 ${isOpen ? "rotate-180" : ""}`}
-              fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-            </svg>
           </div>
         </button>
       </div>
@@ -922,7 +916,7 @@ export default function AdminPemeriksaan() {
         <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="text-center sm:text-left">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              Riwayat Pemeriksaan
+              Hasil Pemeriksaan
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Catatan pemeriksaan Praktek Dokter Umum dr. Rowi
@@ -931,7 +925,7 @@ export default function AdminPemeriksaan() {
         </div>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white tracking-tight">
-            Semua Pemeriksaan
+            Hasil Semua Pemeriksaan
           </h2>
           <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-full font-medium">
             {pemeriksaanList.length} Pemeriksaan

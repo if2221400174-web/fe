@@ -318,7 +318,7 @@ export default function CreateTransaksi() {
             // Transaksi sudah dikonfirmasi → tampilkan tombol navigasi saja
             <>
               <Link
-                to="/dokter/pemeriksaan"
+                to="/admin/pemeriksaan"
                 className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-green-600 dark:text-green-300 border border-green-200 dark:border-green-600 rounded-lg hover:bg-green-100 dark:hover:bg-green-700 transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -327,7 +327,7 @@ export default function CreateTransaksi() {
                 Pemeriksaan
               </Link>
               <Link
-                to="/dokter/transaksi"
+                to="/admin/transaksi"
                 className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-green-600 dark:text-green-300 border border-green-200 dark:border-green-600 rounded-lg hover:bg-green-100 dark:hover:bg-green-700 transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
