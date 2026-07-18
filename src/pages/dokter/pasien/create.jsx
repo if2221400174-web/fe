@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPasien } from "../../../_sevices/pasien";
 
-// ─── API Wilayah Indonesia ────────────────────────────────────────────────────
 const BASE_URL = "https://www.emsifa.com/api-wilayah-indonesia/api";
 
 const fetchProvinsi = () =>
@@ -16,9 +15,7 @@ const fetchKecamatan = (kabupatenId) =>
 
 const fetchDesa = (kecamatanId) =>
   fetch(`${BASE_URL}/villages/${kecamatanId}.json`).then((r) => r.json());
-// ─────────────────────────────────────────────────────────────────────────────
 
-// Ubah semua huruf kapital menjadi Title Case
 const toTitleCase = (str) =>
   str
     .toLowerCase()
@@ -27,7 +24,6 @@ const toTitleCase = (str) =>
 const NEGARA_LIST = ["Indonesia"];
 const JENIS_KELAMIN_LIST = ["Laki-laki", "Perempuan"];
 
-// ─── Searchable Select Component ─────────────────────────────────────────────
 function SearchableSelect({
   options = [],
   value,
@@ -55,7 +51,6 @@ function SearchableSelect({
       )
     : options;
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -67,7 +62,6 @@ function SearchableSelect({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Focus input when opened
   useEffect(() => {
     if (open && inputRef.current) inputRef.current.focus();
   }, [open]);
@@ -137,7 +131,6 @@ function SearchableSelect({
 
   return (
     <div ref={containerRef} className="relative">
-      {/* Trigger button */}
       <button
         type="button"
         onClick={() => !disabled && setOpen((o) => !o)}
@@ -167,10 +160,8 @@ function SearchableSelect({
         </svg>
       </button>
 
-      {/* Dropdown */}
       {open && (
         <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg overflow-hidden">
-          {/* Search input */}
           <div className="p-2 border-b border-gray-100 dark:border-gray-700">
             <div className="relative">
               <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,7 +189,6 @@ function SearchableSelect({
             </div>
           </div>
 
-          {/* Options list */}
           <ul className="max-h-52 overflow-y-auto">
             {filtered.length === 0 ? (
               <li className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500 text-center italic">
@@ -219,7 +209,6 @@ function SearchableSelect({
             )}
           </ul>
 
-          {/* Manual input option */}
           {allowManual && (
             <div className="border-t border-gray-100 dark:border-gray-700 p-2">
               <button
@@ -237,7 +226,6 @@ function SearchableSelect({
         </div>
       )}
 
-      {/* Hidden native input for form validation */}
       {required && (
         <input
           tabIndex={-1}
@@ -250,7 +238,6 @@ function SearchableSelect({
     </div>
   );
 }
-// ------------------------------------
 
 export default function CreatePasienDok() {
   const [formData, setFormData] = useState({
@@ -273,7 +260,7 @@ export default function CreatePasienDok() {
   });
 
   const [selected, setSelected] = useState({
-    provinsi: null,   // { id, name } or { id: "__manual__", name: "..." }
+    provinsi: null,
     kabupaten: null,
     kecamatan: null,
     desa: null,
@@ -289,7 +276,6 @@ export default function CreatePasienDok() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  // Muat provinsi saat negara = Indonesia
   useEffect(() => {
     if (formData.negara === "Indonesia") {
       setLoading((l) => ({ ...l, provinsi: true }));
@@ -322,7 +308,6 @@ export default function CreatePasienDok() {
     setOptions({ provinsi: [], kabupaten: [], kecamatan: [], desa: [] });
   };
 
-  // Helper: resolve name from event (normal select or manual)
   const resolveName = (e, optionsList) => {
     if (e.target.value === "__manual__") {
       return { id: "__manual__", name: toTitleCase(e.target.manualName || "") };
@@ -343,7 +328,6 @@ export default function CreatePasienDok() {
     }));
     setOptions((o) => ({ ...o, kabupaten: [], kecamatan: [], desa: [] }));
 
-    // Only fetch if real ID (not manual)
     if (item && item.id !== "__manual__") {
       setLoading((l) => ({ ...l, kabupaten: true }));
       fetchKabupaten(item.id)
@@ -442,7 +426,6 @@ export default function CreatePasienDok() {
     setOptions((o) => ({ ...o, kabupaten: [], kecamatan: [], desa: [] }));
   };
 
-  // ─── Shared class helpers ────────────────────────────────────────────────
   const inputClass =
     "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 block w-full p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200";
 
@@ -469,7 +452,6 @@ export default function CreatePasienDok() {
     <section className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-2xl px-4 py-6 mx-auto">
 
-        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
@@ -491,7 +473,6 @@ export default function CreatePasienDok() {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div className="p-6 space-y-6">
 
-              {/* Info Box */}
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex flex-col items-center justify-center">
                 <div className="flex gap-3">
                   <div>
@@ -505,10 +486,7 @@ export default function CreatePasienDok() {
                 </div>
               </div>
 
-              {/* ── Data Diri ── */}
               <SectionDivider label="Data Diri" />
-
-              {/* Nama Pasien */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <FieldIcon>
@@ -535,7 +513,6 @@ export default function CreatePasienDok() {
                 />
               </div>
 
-              {/* Tanggal Lahir + Jenis Kelamin */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-3">
@@ -592,10 +569,7 @@ export default function CreatePasienDok() {
                 </div>
               </div>
 
-              {/* ── Alamat ── */}
               <SectionDivider label="Alamat" />
-
-              {/* Negara */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <FieldIcon>
@@ -623,8 +597,6 @@ export default function CreatePasienDok() {
                   ))}
                 </select>
               </div>
-
-              {/* Provinsi */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <FieldIcon>
@@ -651,7 +623,6 @@ export default function CreatePasienDok() {
                 />
               </div>
 
-              {/* Kabupaten / Kota */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <FieldIcon>
@@ -680,7 +651,6 @@ export default function CreatePasienDok() {
                 />
               </div>
 
-              {/* Kecamatan */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <FieldIcon>
@@ -709,7 +679,6 @@ export default function CreatePasienDok() {
                 />
               </div>
 
-              {/* Desa / Kelurahan */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <FieldIcon>
@@ -738,7 +707,6 @@ export default function CreatePasienDok() {
                 />
               </div>
 
-              {/* Detail Alamat */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <FieldIcon>
@@ -764,7 +732,6 @@ export default function CreatePasienDok() {
                 />
               </div>
 
-              {/* Preview Alamat Lengkap */}
               {(formData.detail_alamat || formData.desa || formData.kecamatan) && (
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                   <p className="text-xs font-semibold text-green-700 dark:text-green-400 mb-1 uppercase tracking-wide">
@@ -777,7 +744,6 @@ export default function CreatePasienDok() {
               )}
             </div>
 
-            {/* Form Actions */}
             <div className="flex items-center justify-between gap-4 px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
               <button
                 type="reset"

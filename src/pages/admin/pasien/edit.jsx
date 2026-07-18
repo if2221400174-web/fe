@@ -2,8 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { showPasien, updatePasien } from "../../../_sevices/pasien";
 
-// ─── Fungsi pengambilan data dari API Wilayah Indonesia ───────────────────────
-// Base URL untuk semua endpoint wilayah
+
 const BASE_URL = "https://www.emsifa.com/api-wilayah-indonesia/api";
 
 // Mengambil daftar seluruh provinsi di Indonesia
@@ -21,12 +20,7 @@ const fetchKecamatan = (id) =>
 // Mengambil daftar desa/kelurahan berdasarkan ID kecamatan
 const fetchDesa = (id) =>
   fetch(`${BASE_URL}/villages/${id}.json`).then((r) => r.json());
-// ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Mengubah string menjadi format Title Case
- * Contoh: "JAWA TIMUR" → "Jawa Timur"
- */
 const toTitleCase = (str) =>
   str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 
@@ -34,21 +28,7 @@ const toTitleCase = (str) =>
 const NEGARA_LIST = ["Indonesia"];
 const JENIS_KELAMIN_LIST = ["Laki-laki", "Perempuan"];
 
-// ─── Komponen SearchableSelect ────────────────────────────────────────────────
-/**
- * Komponen dropdown dengan fitur pencarian dan input manual.
- * Digunakan untuk memilih wilayah (provinsi, kabupaten, kecamatan, desa).
- *
- * Props:
- * - options     : daftar pilihan { id, name }
- * - value       : ID pilihan yang sedang aktif
- * - onChange    : fungsi callback saat pilihan berubah
- * - placeholder : teks saat belum ada pilihan
- * - loadingText : teks saat data sedang dimuat
- * - isLoading   : status sedang memuat atau tidak
- * - disabled    : nonaktifkan dropdown
- * - required    : tandai wajib diisi untuk validasi form
- */
+
 function SearchableSelect({
   options = [],
   value,
@@ -59,42 +39,29 @@ function SearchableSelect({
   disabled,
   required,
 }) {
-  // State untuk kata kunci pencarian di dalam dropdown
   const [query, setQuery] = useState("");
 
-  // State untuk membuka/menutup dropdown
   const [open, setOpen] = useState(false);
 
-  // State untuk beralih ke mode input manual
   const [isManual, setIsManual] = useState(false);
 
-  // State untuk menyimpan nilai input manual
   const [manualValue, setManualValue] = useState("");
 
-  // Ref ke elemen container agar klik di luar bisa menutup dropdown
   const containerRef = useRef(null);
 
-  // Ref ke input pencarian agar bisa otomatis fokus saat dropdown dibuka
   const inputRef = useRef(null);
 
-  // Cari objek pilihan yang sedang aktif berdasarkan value (ID)
+
   const selected = options.find((o) => o.id === value);
 
-  // Label yang ditampilkan pada tombol dropdown (Title Case)
   const displayLabel = selected ? toTitleCase(selected.name) : "";
 
-  // Tandai apakah pilihan saat ini adalah hasil input manual
   const isManualSelected = value === "__manual__";
 
-  // Filter daftar pilihan berdasarkan kata kunci pencarian
   const filtered = query
     ? options.filter((o) => o.name.toLowerCase().includes(query.toLowerCase()))
     : options;
 
-  /**
-   * Menutup dropdown saat pengguna mengklik di luar area komponen.
-   * Event listener dipasang saat mount dan dibersihkan saat unmount.
-   */
   useEffect(() => {
     const handler = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -106,17 +73,10 @@ function SearchableSelect({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  /**
-   * Otomatis fokuskan input pencarian setiap kali dropdown dibuka.
-   */
   useEffect(() => {
     if (open && inputRef.current) inputRef.current.focus();
   }, [open]);
 
-  /**
-   * Menangani pemilihan item dari daftar dropdown.
-   * Memanggil onChange dengan ID item, lalu menutup dropdown.
-   */
   const handleSelect = (item) => {
     onChange({ target: { value: item.id } });
     setOpen(false);
@@ -125,11 +85,6 @@ function SearchableSelect({
     setManualValue("");
   };
 
-  /**
-   * Mengirimkan nilai input manual ke parent komponen.
-   * Hanya dijalankan jika input manual tidak kosong.
-   * Mengirim value "__manual__" sebagai penanda bahwa ini input manual.
-   */
   const handleManualSubmit = () => {
     if (manualValue.trim()) {
       onChange({ target: { value: "__manual__", manualName: manualValue.trim() } });
@@ -139,10 +94,6 @@ function SearchableSelect({
     }
   };
 
-  /**
-   * Beralih ke mode input manual.
-   * Menutup dropdown dan mengosongkan pencarian.
-   */
   const handleSwitchToManual = () => {
     setIsManual(true);
     setOpen(false);
@@ -150,15 +101,11 @@ function SearchableSelect({
     setManualValue("");
   };
 
-  /**
-   * Membatalkan mode input manual dan kembali ke dropdown biasa.
-   */
   const handleCancelManual = () => {
     setIsManual(false);
     setManualValue("");
   };
 
-  // Tampilkan input manual jika mode manual aktif
   if (isManual) {
     return (
       <div className="flex gap-2">
@@ -166,7 +113,7 @@ function SearchableSelect({
           type="text"
           value={manualValue}
           onChange={(e) => setManualValue(e.target.value)}
-          // Tekan Enter untuk langsung submit nilai manual
+
           onKeyDown={(e) =>
             e.key === "Enter" && (e.preventDefault(), handleManualSubmit())
           }
@@ -174,7 +121,6 @@ function SearchableSelect({
           placeholder="Ketik nama wilayah..."
           autoFocus
         />
-        {/* Tombol konfirmasi input manual */}
         <button
           type="button"
           onClick={handleManualSubmit}
@@ -183,7 +129,6 @@ function SearchableSelect({
         >
           OK
         </button>
-        {/* Tombol batal, kembali ke mode dropdown */}
         <button
           type="button"
           onClick={handleCancelManual}
@@ -198,7 +143,6 @@ function SearchableSelect({
   // Tampilan dropdown utama
   return (
     <div ref={containerRef} className="relative">
-      {/* Tombol pemicu dropdown */}
       <button
         type="button"
         onClick={() => !disabled && setOpen((o) => !o)}
@@ -221,7 +165,6 @@ function SearchableSelect({
             {loadingText}
           </span>
         ) : (
-          // Tampilkan label pilihan aktif, penanda manual, atau placeholder
           <span
             className={`flex-1 truncate ${
               !displayLabel && !isManualSelected
@@ -230,7 +173,6 @@ function SearchableSelect({
             }`}
           >
             {isManualSelected ? (
-              // Jika pilihan manual aktif, tampilkan ikon pensil + teks "Manual"
               <span className="flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" clipRule="evenodd" />
@@ -238,12 +180,10 @@ function SearchableSelect({
                 Manual
               </span>
             ) : (
-              // Tampilkan nama pilihan aktif atau placeholder
               displayLabel || placeholder
             )}
           </span>
         )}
-        {/* Ikon panah yang berputar saat dropdown terbuka */}
         <svg
           className={`w-4 h-4 text-gray-400 flex-shrink-0 ml-2 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
           fill="none"
@@ -254,11 +194,9 @@ function SearchableSelect({
         </svg>
       </button>
 
-      {/* Panel dropdown — hanya tampil saat open = true */}
       {open && (
         <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg overflow-hidden">
 
-          {/* Input pencarian di dalam dropdown */}
           <div className="p-2 border-b border-gray-100 dark:border-gray-700">
             <div className="relative">
               <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -272,7 +210,6 @@ function SearchableSelect({
                 className="w-full pl-8 pr-8 py-2 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-green-500"
                 placeholder="Cari..."
               />
-              {/* Tombol hapus kata kunci pencarian */}
               {query && (
                 <button
                   type="button"
@@ -287,10 +224,8 @@ function SearchableSelect({
             </div>
           </div>
 
-          {/* Daftar pilihan hasil filter pencarian */}
           <ul className="max-h-52 overflow-y-auto">
             {filtered.length === 0 ? (
-              // Tampilkan pesan jika tidak ada hasil yang cocok
               <li className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500 text-center italic">
                 Tidak ditemukan
               </li>
@@ -313,7 +248,6 @@ function SearchableSelect({
             )}
           </ul>
 
-          {/* Opsi isi manual jika wilayah tidak tersedia di daftar */}
           <div className="border-t border-gray-100 dark:border-gray-700 p-2">
             <button
               type="button"
@@ -329,10 +263,6 @@ function SearchableSelect({
         </div>
       )}
 
-      {/*
-        Input tersembunyi untuk memastikan validasi HTML5 (required) berjalan.
-        Tidak terlihat oleh pengguna, hanya digunakan browser untuk validasi form.
-      */}
       {required && (
         <input
           tabIndex={-1}
@@ -345,19 +275,11 @@ function SearchableSelect({
     </div>
   );
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Halaman Edit Pasien.
- * Memuat data pasien berdasarkan ID dari URL, mengisi form,
- * lalu mengirim perubahan ke server saat form disubmit.
- */
 export default function EditPasien() {
-  // Ambil ID pasien dari parameter URL (misal: /admin/pasien/edit/5)
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // State utama form — menyimpan semua nilai input
   const [formData, setFormData] = useState({
     nama: "",
     tanggal_lahir: "",
@@ -370,7 +292,6 @@ export default function EditPasien() {
     detail_alamat: "",
   });
 
-  // State untuk menyimpan daftar pilihan tiap level wilayah
   const [options, setOptions] = useState({
     provinsi: [],
     kabupaten: [],
@@ -378,7 +299,6 @@ export default function EditPasien() {
     desa: [],
   });
 
-  // State untuk menyimpan objek wilayah yang sedang dipilih (berisi id & name)
   const [selected, setSelected] = useState({
     provinsi: null,
     kabupaten: null,
@@ -386,7 +306,6 @@ export default function EditPasien() {
     desa: null,
   });
 
-  // State loading per level wilayah saat fetch API berlangsung
   const [loading, setLoading] = useState({
     provinsi: false,
     kabupaten: false,
@@ -394,34 +313,20 @@ export default function EditPasien() {
     desa: false,
   });
 
-  // State loading halaman penuh saat data pasien pertama kali dimuat
   const [isPageLoading, setIsPageLoading] = useState(true);
 
-  // State untuk mencegah submit ganda saat form sedang diproses
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ─── Fetch data pasien & prefill form ────────────────────────────────────
-  /**
-   * Saat komponen pertama kali dimount, ambil data pasien dari server
-   * berdasarkan ID, lalu isi semua field form termasuk dropdown wilayah
-   * secara bertingkat (provinsi → kabupaten → kecamatan → desa).
-   *
-   * Jika suatu level wilayah tidak cocok dengan data API (misalnya
-   * data lama yang diisi manual), level tersebut ditandai sebagai "__manual__"
-   * agar tetap tampil di dropdown tanpa error.
-   */
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await showPasien(id);
         const data = res.data;
 
-        // Alamat tersimpan sebagai satu string: "Detail, Desa, Kecamatan, Kabupaten, Provinsi, Negara"
-        // Pisahkan berdasarkan koma untuk mengisi masing-masing field
         const alamatParts = (data.alamat || "").split(",").map((s) => s.trim());
         const [detail, desa, kecamatan, kabupaten, provinsi, negara] = alamatParts;
 
-        // Isi semua field form dengan data yang sudah di-parse
         setFormData({
           nama: data.nama || "",
           tanggal_lahir: data.tanggal_lahir || "",
@@ -443,7 +348,6 @@ export default function EditPasien() {
             (p) => p.name.toLowerCase() === provinsi.toLowerCase()
           );
 
-          // Jika provinsi tidak ditemukan di API, tandai sebagai input manual
           if (!matchedProvinsi) {
             setSelected((s) => ({
               ...s,
@@ -452,8 +356,6 @@ export default function EditPasien() {
             setIsPageLoading(false);
             return;
           }
-
-          // Provinsi cocok — simpan dan lanjut muat kabupaten
           setSelected((s) => ({ ...s, provinsi: matchedProvinsi }));
           const kabupatenList = await fetchKabupaten(matchedProvinsi.id);
           setOptions((o) => ({ ...o, kabupaten: kabupatenList }));
@@ -462,8 +364,6 @@ export default function EditPasien() {
             const matchedKabupaten = kabupatenList.find(
               (k) => k.name.toLowerCase() === kabupaten.toLowerCase()
             );
-
-            // Jika kabupaten tidak ditemukan, tandai manual dan berhenti
             if (!matchedKabupaten) {
               setSelected((s) => ({
                 ...s,
@@ -473,7 +373,6 @@ export default function EditPasien() {
               return;
             }
 
-            // Kabupaten cocok — simpan dan lanjut muat kecamatan
             setSelected((s) => ({ ...s, kabupaten: matchedKabupaten }));
             const kecamatanList = await fetchKecamatan(matchedKabupaten.id);
             setOptions((o) => ({ ...o, kecamatan: kecamatanList }));
@@ -482,8 +381,6 @@ export default function EditPasien() {
               const matchedKecamatan = kecamatanList.find(
                 (k) => k.name.toLowerCase() === kecamatan.toLowerCase()
               );
-
-              // Jika kecamatan tidak ditemukan, tandai manual dan berhenti
               if (!matchedKecamatan) {
                 setSelected((s) => ({
                   ...s,
@@ -492,8 +389,6 @@ export default function EditPasien() {
                 setIsPageLoading(false);
                 return;
               }
-
-              // Kecamatan cocok — simpan dan lanjut muat desa
               setSelected((s) => ({ ...s, kecamatan: matchedKecamatan }));
               const desaList = await fetchDesa(matchedKecamatan.id);
               setOptions((o) => ({ ...o, desa: desaList }));
@@ -502,7 +397,6 @@ export default function EditPasien() {
                 const matchedDesa = desaList.find(
                   (d) => d.name.toLowerCase() === desa.toLowerCase()
                 );
-                // Jika desa tidak cocok, tandai manual; jika cocok, simpan langsung
                 setSelected((s) => ({
                   ...s,
                   desa: matchedDesa || { id: "__manual__", name: toTitleCase(desa) },
@@ -516,7 +410,6 @@ export default function EditPasien() {
         alert("Gagal memuat data pasien.");
         navigate("/admin/pasien");
       } finally {
-        // Sembunyikan loading halaman, baik sukses maupun gagal
         setIsPageLoading(false);
       }
     };
@@ -524,23 +417,12 @@ export default function EditPasien() {
     fetchData();
   }, [id, navigate]);
 
-  // ─── Handler perubahan input teks/select biasa ────────────────────────────
-  /**
-   * Menangani perubahan pada input teks dan select standar (nama, tanggal lahir, dll).
-   * Memperbarui field yang sesuai di formData berdasarkan atribut name elemen.
-   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ─── Handler perubahan negara ─────────────────────────────────────────────
-  /**
-   * Menangani perubahan pilihan negara.
-   * Mereset semua field alamat dan daftar opsi wilayah karena data wilayah
-   * bergantung pada negara yang dipilih.
-   * Jika negara adalah Indonesia, langsung muat daftar provinsi.
-   */
+
   const handleNegara = (e) => {
     const value = e.target.value;
     setFormData((prev) => ({
@@ -566,29 +448,14 @@ export default function EditPasien() {
     }
   };
 
-  // ─── Helper: resolve nama dari event SearchableSelect ────────────────────
-  /**
-   * Mengubah event dari SearchableSelect menjadi objek { id, name }.
-   * Menangani dua kasus:
-   * - Pilihan dari daftar: cari item di optionsList berdasarkan ID
-   * - Input manual: gunakan manualName dari event target langsung
-   */
   const resolveName = (e, optionsList) => {
     if (e.target.value === "__manual__") {
-      // Input manual — ambil nama dari properti tambahan di event
       return { id: "__manual__", name: toTitleCase(e.target.manualName || "") };
     }
-    // Pilihan normal — temukan item di daftar berdasarkan ID
     const item = optionsList.find((o) => o.id === e.target.value);
     return item ? { id: item.id, name: toTitleCase(item.name) } : null;
   };
 
-  // ─── Handler perubahan provinsi ───────────────────────────────────────────
-  /**
-   * Menangani pemilihan provinsi.
-   * Mereset kabupaten, kecamatan, dan desa karena bergantung pada provinsi.
-   * Jika bukan input manual, langsung ambil daftar kabupaten dari API.
-   */
   const handleProvinsi = (e) => {
     const item = resolveName(e, options.provinsi);
     setSelected((s) => ({ ...s, provinsi: item, kabupaten: null, kecamatan: null, desa: null }));
@@ -599,10 +466,9 @@ export default function EditPasien() {
       kecamatan: "",
       desa: "",
     }));
-    // Kosongkan daftar level di bawah provinsi
+
     setOptions((o) => ({ ...o, kabupaten: [], kecamatan: [], desa: [] }));
 
-    // Hanya fetch kabupaten jika pilihan bukan input manual
     if (item && item.id !== "__manual__") {
       setLoading((l) => ({ ...l, kabupaten: true }));
       fetchKabupaten(item.id)
@@ -612,20 +478,12 @@ export default function EditPasien() {
     }
   };
 
-  // ─── Handler perubahan kabupaten/kota ────────────────────────────────────
-  /**
-   * Menangani pemilihan kabupaten/kota.
-   * Mereset kecamatan dan desa, lalu memuat daftar kecamatan dari API
-   * jika pilihan bukan input manual.
-   */
   const handleKabupaten = (e) => {
     const item = resolveName(e, options.kabupaten);
     setSelected((s) => ({ ...s, kabupaten: item, kecamatan: null, desa: null }));
     setFormData((prev) => ({ ...prev, kabupaten: item?.name || "", kecamatan: "", desa: "" }));
-    // Kosongkan daftar kecamatan dan desa
     setOptions((o) => ({ ...o, kecamatan: [], desa: [] }));
 
-    // Hanya fetch kecamatan jika pilihan bukan input manual
     if (item && item.id !== "__manual__") {
       setLoading((l) => ({ ...l, kecamatan: true }));
       fetchKecamatan(item.id)
@@ -635,20 +493,12 @@ export default function EditPasien() {
     }
   };
 
-  // ─── Handler perubahan kecamatan ──────────────────────────────────────────
-  /**
-   * Menangani pemilihan kecamatan.
-   * Mereset desa, lalu memuat daftar desa/kelurahan dari API
-   * jika pilihan bukan input manual.
-   */
   const handleKecamatan = (e) => {
     const item = resolveName(e, options.kecamatan);
     setSelected((s) => ({ ...s, kecamatan: item, desa: null }));
     setFormData((prev) => ({ ...prev, kecamatan: item?.name || "", desa: "" }));
-    // Kosongkan daftar desa
     setOptions((o) => ({ ...o, desa: [] }));
 
-    // Hanya fetch desa jika pilihan bukan input manual
     if (item && item.id !== "__manual__") {
       setLoading((l) => ({ ...l, desa: true }));
       fetchDesa(item.id)
@@ -658,24 +508,12 @@ export default function EditPasien() {
     }
   };
 
-  // ─── Handler perubahan desa/kelurahan ────────────────────────────────────
-  /**
-   * Menangani pemilihan desa atau kelurahan.
-   * Tidak ada level di bawahnya, jadi hanya update state selected dan formData.
-   */
   const handleDesa = (e) => {
     const item = resolveName(e, options.desa);
     setSelected((s) => ({ ...s, desa: item }));
     setFormData((prev) => ({ ...prev, desa: item?.name || "" }));
   };
 
-  // ─── Fungsi membangun string alamat lengkap ───────────────────────────────
-  /**
-   * Menggabungkan semua bagian alamat menjadi satu string.
-   * Urutan: detail → desa → kecamatan → kabupaten → provinsi → negara.
-   * Bagian yang kosong akan dilewati (filter Boolean).
-   * Hasilnya dikirim ke server sebagai field "alamat".
-   */
   const buildAlamat = () =>
     [
       formData.detail_alamat,
@@ -688,18 +526,10 @@ export default function EditPasien() {
       .filter(Boolean)
       .join(", ");
 
-  // ─── Handler submit form ──────────────────────────────────────────────────
-  /**
-   * Menangani pengiriman form edit pasien ke server.
-   * Membangun objek data dari formData, lalu memanggil updatePasien.
-   * Jika berhasil, redirect ke halaman daftar pasien.
-   * Jika gagal, tampilkan pesan error yang diambil dari respons server.
-   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Siapkan data yang akan dikirim ke API
     const submitData = {
       nama: formData.nama,
       alamat: buildAlamat(),
@@ -709,19 +539,12 @@ export default function EditPasien() {
 
     try {
       await updatePasien(id, submitData);
-      // Redirect ke halaman daftar pasien setelah berhasil
       navigate("/admin/pasien");
     } catch (error) {
       const data = error.response?.data;
       console.error("Status:", error.response?.status);
       console.error("Data:", JSON.stringify(data, null, 2));
 
-      /**
-       * Mengekstrak pesan error dari berbagai kemungkinan struktur respons Laravel:
-       * 1. { errors: { field: ["pesan"] } } — validasi 422
-       * 2. { message: "pesan" } — error umum
-       * 3. Fallback: tampilkan seluruh data sebagai JSON
-       */
       const extractMessage = (data) => {
         if (!data) return null;
         if (data.errors && typeof data.errors === "object") {
@@ -736,16 +559,10 @@ export default function EditPasien() {
       const msg = extractMessage(data);
       alert(msg ? `Gagal menyimpan:\n${msg}` : "Terjadi kesalahan sistem. Silakan coba lagi.");
     } finally {
-      // Aktifkan kembali tombol submit setelah proses selesai
       setIsSubmitting(false);
     }
   };
 
-  // ─── Handler reset form ───────────────────────────────────────────────────
-  /**
-   * Mengosongkan field data diri (nama, tanggal lahir, jenis kelamin, detail alamat).
-   * Field wilayah (provinsi–desa) tidak direset agar tidak perlu dipilih ulang.
-   */
   const handleReset = () => {
     setFormData((prev) => ({
       ...prev,
@@ -756,29 +573,18 @@ export default function EditPasien() {
     }));
   };
 
-  // ─── Kelas CSS bersama untuk input dan select ─────────────────────────────
-  // Kelas Tailwind yang dipakai berulang untuk semua elemen input teks
   const inputClass =
     "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 block w-full p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200";
 
-  // Kelas Tailwind yang dipakai berulang untuk semua elemen select
   const selectClass =
     "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 block w-full p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200";
 
-  /**
-   * Komponen ikon kecil dengan latar hijau muda.
-   * Digunakan sebagai dekorasi di sebelah kiri label setiap field form.
-   */
   const FieldIcon = ({ children }) => (
     <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg flex-shrink-0">
       {children}
     </div>
   );
 
-  /**
-   * Komponen pemisah seksi dengan label teks di tengah.
-   * Digunakan untuk memisahkan bagian "Data Diri" dan "Alamat" di form.
-   */
   const SectionDivider = ({ label }) => (
     <div className="flex items-center gap-3 pt-2">
       <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600" />
@@ -789,8 +595,6 @@ export default function EditPasien() {
     </div>
   );
 
-  // ─── Tampilan loading halaman penuh ──────────────────────────────────────
-  // Tampilkan spinner selama data pasien dan wilayah belum selesai dimuat
   if (isPageLoading) {
     return (
       <section className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
@@ -802,12 +606,10 @@ export default function EditPasien() {
     );
   }
 
-  // ─── Render form utama ────────────────────────────────────────────────────
   return (
     <section className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-2xl px-4 py-6 mx-auto">
 
-        {/* Header halaman: judul + tombol kembali */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Form Edit Pasien</h2>
@@ -839,10 +641,8 @@ export default function EditPasien() {
                 </div>
               </div>
 
-              {/* ── Seksi Data Diri ── */}
               <SectionDivider label="Data Diri" />
 
-              {/* Field: Nama Pasien */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <FieldIcon>
@@ -869,7 +669,6 @@ export default function EditPasien() {
                 />
               </div>
 
-              {/* Field: Tanggal Lahir + Jenis Kelamin (2 kolom) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Tanggal Lahir */}
                 <div>
@@ -897,7 +696,6 @@ export default function EditPasien() {
                   />
                 </div>
 
-                {/* Jenis Kelamin */}
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <FieldIcon>
@@ -1074,7 +872,6 @@ export default function EditPasien() {
                 />
               </div>
 
-              {/* Field: Detail Alamat (jalan, nomor, RT/RW) */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <FieldIcon>
@@ -1100,7 +897,6 @@ export default function EditPasien() {
                 />
               </div>
 
-              {/* Preview alamat lengkap — tampil jika minimal satu bagian terisi */}
               {(formData.detail_alamat || formData.desa || formData.kecamatan) && (
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                   <p className="text-xs font-semibold text-green-700 dark:text-green-400 mb-1 uppercase tracking-wide">
@@ -1111,9 +907,7 @@ export default function EditPasien() {
               )}
             </div>
 
-            {/* Tombol aksi form: Reset dan Simpan */}
             <div className="flex items-center justify-between gap-4 px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
-              {/* Tombol reset — mengosongkan field data diri */}
               <button
                 type="reset"
                 onClick={handleReset}
@@ -1125,13 +919,11 @@ export default function EditPasien() {
                 Reset
               </button>
 
-              {/* Tombol simpan — mengirim form ke server */}
               <button
                 type="submit"
                 disabled={isSubmitting}
                 className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-green-900 rounded-lg hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 dark:bg-green-900 dark:hover:bg-green-800 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg"
               >
-                {/* Tampilkan spinner dan teks "Menyimpan..." saat proses berlangsung */}
                 {isSubmitting ? (
                   <>
                     <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">

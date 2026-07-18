@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPasien } from "../../../_sevices/pasien";
 
-// ─── API Wilayah Indonesia ────────────────────────────────────────────────────
 const BASE_URL = "https://www.emsifa.com/api-wilayah-indonesia/api";
 
 const fetchProvinsi = () =>
@@ -16,9 +15,7 @@ const fetchKecamatan = (kabupatenId) =>
 
 const fetchDesa = (kecamatanId) =>
   fetch(`${BASE_URL}/villages/${kecamatanId}.json`).then((r) => r.json());
-// ─────────────────────────────────────────────────────────────────────────────
 
-// Ubah semua huruf kapital menjadi Title Case
 const toTitleCase = (str) =>
   str
     .toLowerCase()
@@ -27,7 +24,6 @@ const toTitleCase = (str) =>
 const NEGARA_LIST = ["Indonesia"];
 const JENIS_KELAMIN_LIST = ["Laki-laki", "Perempuan"];
 
-// ─── Searchable Select Component ─────────────────────────────────────────────
 function SearchableSelect({
   options = [],
   value,
