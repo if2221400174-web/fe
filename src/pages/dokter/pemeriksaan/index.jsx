@@ -31,6 +31,22 @@ const initialsOf = (name = "") =>
     .toUpperCase()
     .slice(0, 2);
 
+// --- HELPER ILUSI PEMERIKSA ---
+// Keterangan pemeriksa selalu ditampilkan sebagai "dokter",
+// apapun role user yang sebenarnya (admin/dokter/dll).
+const getPemeriksaName = (user) => {
+  if (!user) return "—";
+  return user.username.toLowerCase().startsWith("dr")
+    ? user.username
+    : `dr. ${user.username}`;
+};
+
+const getPemeriksaRole = (user) => {
+  if (!user) return "—";
+  return "dokter";
+};
+// -------------------------------
+
 const emptyRow = () => ({ id: Date.now(), obat_id: "", aturan_pakai: "", isNew: true });
 
 const syncTransaksiAfterResep = async (pemeriksaanId, updatedDetailResep, daftarObat) => {
@@ -511,7 +527,7 @@ function KartuPemeriksaan({
                 <span className="text-xs text-gray-500 dark:text-gray-400">
                   Pemeriksa:&nbsp;
                   <span className="font-medium text-gray-700 dark:text-gray-300">
-                    {pemeriksaan.user?.username ?? "—"}
+                    {getPemeriksaName(pemeriksaan.user)}
                   </span>
                 </span>
                 <span className="hidden sm:inline text-gray-300 dark:text-gray-600">·</span>
@@ -707,20 +723,29 @@ function KartuPemeriksaan({
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-gray-900 dark:text-white truncate">
-                  {pemeriksaan.user?.username ?? "—"}
+                  {getPemeriksaName(pemeriksaan.user)}
                 </p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 capitalize truncate">
-                  {pemeriksaan.user?.role === "admin" ? "dokter" : user.role ?? "—"}
+                  {getPemeriksaRole(pemeriksaan.user)}
                 </p>
               </div>
             </div>
 
-            <Link
-              to={`/dokter/transaksi/create/${pemeriksaan.id}`}
-              className="w-full sm:w-auto flex-shrink-0 inline-flex items-center justify-center gap-1 px-3 py-2 sm:py-1 text-xs font-semibold text-white bg-green-700 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500 rounded-md transition-colors"
-            >
-              <span>Tambah Jasa Medis</span>
-            </Link>
+            {pemeriksaan.transaksi && pemeriksaan.transaksi.length > 0 ? (
+              <Link
+                to={`/dokter/transaksi/create/${pemeriksaan.id}`}
+                className="w-full sm:w-auto flex-shrink-0 inline-flex items-center justify-center gap-1 px-3 py-2 sm:py-1 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500 rounded-md transition-colors"
+              >
+                <span>Lihat Transaksi</span>
+              </Link>
+            ) : (
+              <Link
+                to={`/dokter/transaksi/create/${pemeriksaan.id}`}
+                className="w-full sm:w-auto flex-shrink-0 inline-flex items-center justify-center gap-1 px-3 py-2 sm:py-1 text-xs font-semibold text-white bg-green-700 hover:bg-green-800 dark:bg-green-600 dark:hover:bg-green-500 rounded-md transition-colors"
+              >
+                <span>Tambah Jasa Medis</span>
+              </Link>
+            )}
           </div>
         </div>
       )}
@@ -897,7 +922,7 @@ export default function DokterPemeriksaan() {
         "No": index + 1,
         "Tanggal": formatTanggal(p.tanggal_pemeriksaan),
         "Nama Pasien": p.rekam_medis?.pasien?.nama ?? "-",
-        "Dokter Pemeriksa": p.user?.username ?? "-", 
+        "Dokter Pemeriksa": getPemeriksaName(p.user),
         "Keluhan": p.keluhan ?? "-",
         "Diagnosa": p.diagnosa ?? "-",
         "Catatan Edukasi": p.catatan ?? "-",
