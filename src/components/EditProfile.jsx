@@ -175,7 +175,7 @@ export default function EditProfile() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Form Edit Profil</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Edit Profil</h2>
           </div>
           <button
             onClick={() => navigate(-1)}
@@ -198,7 +198,7 @@ export default function EditProfile() {
                   <div>
                     <h3 className="text-sm font-semibold text-green-900 text-center dark:text-green-300 mb-1">Edit Profil Anda</h3>
                     <p className="text-sm text-center text-green-800 dark:text-green-400">
-                      Kosongkan password jika tidak ingin mengubahnya. Foto hanya diperbarui jika kamu mengaktifkan opsi ganti foto.
+                      Foto hanya diperbarui jika kamu mengaktifkan opsi ganti foto.
                     </p>
                   </div>
                 </div>
@@ -316,9 +316,9 @@ export default function EditProfile() {
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
                 />
                 <label htmlFor="updatePassword" className="text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
-                  Update Password
+                  Password
                 </label>
-                <span className="text-xs text-gray-500 dark:text-gray-400">(Centang jika ingin mengubah password)</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">(Centang mengubah password)</span>
               </div>
 
               {/* Password */}
@@ -380,7 +380,7 @@ export default function EditProfile() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-900 dark:text-white">Foto Profil</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">JPG, PNG atau WEBP — maks. 2MB</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Maks. 2MB</p>
                     </div>
                   </div>
                   <button
@@ -411,10 +411,6 @@ export default function EditProfile() {
                         </svg>
                       </div>
                     )}
-                    <div>
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Foto saat ini</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Klik "Ganti Foto" untuk mengubah</p>
-                    </div>
                   </div>
                 ) : (
                   <div>
@@ -486,9 +482,6 @@ export default function EditProfile() {
 
                     {existingFoto && !formData.foto && (
                       <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                        </svg>
                         Foto lama tetap digunakan jika tidak ada file baru dipilih
                       </p>
                     )}
