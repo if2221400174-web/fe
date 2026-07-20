@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toPng } from "html-to-image";
 import { deletePasien, getPasien } from "../../../_sevices/pasien";
+// IMPORT tambahan untuk melacak dan menghapus antrean
+import { getRekamMedis } from "../../../_sevices/rekamMedis";
+import { getPemeriksaan, deletePemeriksaan } from "../../../_sevices/pemeriksaan";
 
-// Ubah di sini kalau ada informasi klinik yang perlu dikoreksi
 const KLINIK_INFO = {
   namaKlinik: "PRAKTEK DOKTER UMUM",
   namaDokter: "dr. Rowi",
@@ -12,23 +14,71 @@ const KLINIK_INFO = {
 };
 
 export default function DokterPasien() {
+  const navigate = useNavigate();
   const [pasien, setPasien] = useState([]);
   const [viewMode, setViewMode] = useState("card");
   const [searchQuery, setSearchQuery] = useState("");
   const [cardPasien, setCardPasien] = useState(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  
+  // STATE ANTREAN
+  const [antreanDokter, setAntreanDokter] = useState([]);
+  const [isAccepting, setIsAccepting] = useState(null);
+
   const kartuRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      const pasienData = await getPasien();
-      const sorted = [...pasienData].sort(
-        (a, b) => new Date(b.created_at) - new Date(a.created_at)
-      );
-      setPasien(sorted);
+      try {
+        const [pasienData, rekamMedisData, pemeriksaanData] = await Promise.all([
+          getPasien(),
+          getRekamMedis(),
+          getPemeriksaan()
+        ]);
+        
+        const sorted = [...(pasienData || [])].sort(
+          (a, b) => new Date(b.created_at) - new Date(a.created_at)
+        );
+        setPasien(sorted);
+
+        // --- LOGIKA MENGAMBIL ANTREAN DARI ADMIN ---
+        let antreanTokens = (pemeriksaanData || []).filter(p => p.keluhan === "ANTREAN_DARI_ADMIN");
+        
+        // Urutkan berdasarkan ID (yang terkecil = paling duluan masuk antrean)
+        antreanTokens = antreanTokens.sort((a, b) => a.idpemeriksaan - b.idpemeriksaan);
+
+        const listAntrean = antreanTokens.map((token, index) => {
+            const rm = (rekamMedisData || []).find(r => r.id === token.rekam_medis_id);
+            if (!rm) return null;
+            const pas = (pasienData || []).find(p => p.id === rm.pasien_id);
+            if (!pas) return null;
+            
+            return { 
+              ...pas, 
+              id_pemeriksaan_antrean: token.idpemeriksaan, 
+              urutan_antrean: index + 1 // Urutan #1, #2, #3, dst
+            };
+        }).filter(Boolean); 
+
+        setAntreanDokter(listAntrean);
+      } catch (error) {
+        console.error("Gagal mengambil data:", error);
+      }
     };
     fetchData();
   }, []);
+
+  const handleTerimaPasien = async (pasienId, idAntrean) => {
+    try {
+      setIsAccepting(idAntrean);
+      await deletePemeriksaan(idAntrean); // Hapus antrean palsu dari database
+      navigate(`/dokter/pemeriksaan/create/${pasienId}`); // Lompat ke form
+    } catch (error) {
+      console.error(error);
+      alert("Gagal menerima pasien. Periksa koneksi.");
+      setIsAccepting(null);
+    }
+  };
 
   const handleOpenKartu = (patient) => setCardPasien(patient);
   const handleCloseKartu = () => setCardPasien(null);
@@ -40,7 +90,7 @@ export default function DokterPasien() {
     try {
       const dataUrl = await toPng(kartuRef.current, {
         cacheBust: true,
-        pixelRatio: 3, // Sama seperti scale: 3 di html2canvas
+        pixelRatio: 3,
         backgroundColor: null,
       });
 
@@ -68,6 +118,53 @@ export default function DokterPasien() {
     <>
       <section className="bg-gray-50 dark:bg-gray-900 min-h-screen">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
+
+          {/* --- KOTAK DAFTAR ANTREAN PASIEN (SCROLL HORIZONTAL) --- */}
+          {antreanDokter.length > 0 && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-3 shadow-sm relative overflow-hidden mb-6">
+              <div className="absolute top-0 left-0 w-1 h-full bg-green-500 animate-pulse"></div>
+              <div className="flex items-center gap-2 mb-3 px-2 mt-1">
+                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <h2 className="text-sm font-bold text-green-800">Pasien Menunggu: {antreanDokter.length} Orang</h2>
+              </div>
+              
+              <div className="flex flex-nowrap overflow-x-auto gap-3 px-2 pb-3 scrollbar-thin">
+                {antreanDokter.map((pasien) => (
+                  <div key={pasien.id_pemeriksaan_antrean} className="flex-none bg-white border border-green-200 pl-3 pr-1.5 py-1.5 rounded-lg flex items-center justify-between gap-4 shadow-sm hover:border-green-400 transition-colors min-w-[220px] max-w-[260px]">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="bg-green-100 text-green-700 text-[10px] font-extrabold px-1.5 py-0.5 rounded">
+                          #{pasien.urutan_antrean}
+                        </span>
+                        <p className="font-bold text-gray-800 uppercase text-xs line-clamp-1">{pasien.nama}</p>
+                      </div>
+                      <p className="text-[10px] text-gray-500 font-medium pl-1">{pasien.kode_rekammedis || "Belum ada RM"}</p>
+                    </div>
+                    <button
+                      onClick={() => handleTerimaPasien(pasien.id, pasien.id_pemeriksaan_antrean)}
+                      disabled={isAccepting === pasien.id_pemeriksaan_antrean}
+                      className="bg-green-600 hover:bg-green-700 text-white text-[11px] font-semibold py-1.5 px-3 rounded-md transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-60 flex-shrink-0"
+                    >
+                      {isAccepting === pasien.id_pemeriksaan_antrean ? (
+                         <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                         </svg>
+                      ) : (
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                      Terima
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {/* ------------------------------------------- */}
 
           <div className="mb-6 text-center sm:text-left">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -183,7 +280,6 @@ export default function DokterPasien() {
                       </div>
                     </div>
 
-                    {/* Rekam Medis & Pemeriksaan — tetap stacked seperti semula */}
                     <div className="px-3 pb-2 flex flex-col gap-1.5">
                       <Link
                         to={`/dokter/rekam-medis/${p.id}`}
@@ -194,15 +290,24 @@ export default function DokterPasien() {
                         </svg>
                         Rekam Medis
                       </Link>
-                      <Link
-                        to={`/dokter/pemeriksaan/create/${p.id}`}
+                      
+                      {/* Safety check: jika diklik manual dari bawah, hapus antreannya dulu agar tidak ada karcis hantu */}
+                      <button
+                        onClick={() => {
+                          const antrean = antreanDokter.find(a => a.id === p.id);
+                          if(antrean) {
+                             handleTerimaPasien(p.id, antrean.id_pemeriksaan_antrean);
+                          } else {
+                             navigate(`/dokter/pemeriksaan/create/${p.id}`);
+                          }
+                        }}
                         className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 dark:text-green-300 dark:bg-green-900/30 dark:hover:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-md transition-colors duration-150"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
                         </svg>
                         Pemeriksaan
-                      </Link>
+                      </button>
                     </div>
 
                     <div className="border-t border-gray-100 dark:border-gray-700 flex">
@@ -228,7 +333,7 @@ export default function DokterPasien() {
                     {searchQuery ? "Tidak ada hasil yang sesuai dengan pencarian. Silahkan ke admin untuk mendafatarkan pasien" : "Belum ada pasien yang terdaftar"}
                   </p>
                   {!searchQuery && (
-                    <span>Silahkan ke admin untuk mendafatarkan pasien</span>
+                    <span className="text-sm text-gray-500">Silahkan ke admin untuk mendafatarkan pasien</span>
                   )}
                 </div>
               )}
@@ -305,8 +410,17 @@ export default function DokterPasien() {
                                 </svg>
                                 <span>RM</span>
                               </Link>
-                              <Link
-                                to={`/dokter/pemeriksaan/create/${p.id}`}
+                              
+                              {/* Sama seperti kartu, tombol periksa tabel juga kita jaring agar tidak lolos karcis hantu */}
+                              <button
+                                onClick={() => {
+                                  const antrean = antreanDokter.find(a => a.id === p.id);
+                                  if(antrean) {
+                                     handleTerimaPasien(p.id, antrean.id_pemeriksaan_antrean);
+                                  } else {
+                                     navigate(`/dokter/pemeriksaan/create/${p.id}`);
+                                  }
+                                }}
                                 title="Tambah Pemeriksaan"
                                 className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 dark:text-green-300 dark:bg-green-900/30 dark:hover:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-md transition-colors duration-150 whitespace-nowrap"
                               >
@@ -314,7 +428,8 @@ export default function DokterPasien() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
                                 </svg>
                                 <span className="hidden sm:inline">Periksa</span>
-                              </Link>
+                              </button>
+
                               <button
                                 onClick={() => handleOpenKartu(p)}
                                 title="Kartu Berobat"
@@ -454,6 +569,12 @@ export default function DokterPasien() {
       )}
 
       <style>{`
+        .line-clamp-1 {
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
         .line-clamp-2 {
           display: -webkit-box;
           -webkit-line-clamp: 2;
@@ -464,7 +585,7 @@ export default function DokterPasien() {
           scrollbar-width: thin;
           scrollbar-color: #d1d5db transparent;
         }
-        .scrollbar-thin::-webkit-scrollbar { height: 3px; }
+        .scrollbar-thin::-webkit-scrollbar { height: 6px; }
         .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
         .scrollbar-thin::-webkit-scrollbar-thumb {
           background-color: #d1d5db;

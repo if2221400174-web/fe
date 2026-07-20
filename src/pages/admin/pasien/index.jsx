@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { toPng } from "html-to-image";
 import { deletePasien, getPasien } from "../../../_sevices/pasien";
+import { createPemeriksaan } from "../../../_sevices/pemeriksaan";
+// IMPORT tambahan untuk mencari rekam medis
+import { getRekamMedis } from "../../../_sevices/rekamMedis"; 
 
-// Ubah di sini kalau ada informasi klinik yang perlu dikoreksi
 const KLINIK_INFO = {
   namaKlinik: "PRAKTEK DOKTER UMUM",
   namaDokter: "dr. Rowi",
@@ -17,6 +19,8 @@ export default function AdminPasien() {
   const [searchQuery, setSearchQuery] = useState("");
   const [cardPasien, setCardPasien] = useState(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  
+  const [callingId, setCallingId] = useState(null); 
   const kartuRef = useRef(null);
 
   useEffect(() => {
@@ -48,7 +52,7 @@ export default function AdminPasien() {
     try {
       const dataUrl = await toPng(kartuRef.current, {
         cacheBust: true,
-        pixelRatio: 3, // Sama seperti scale: 3 di html2canvas
+        pixelRatio: 3, 
         backgroundColor: null,
       });
 
@@ -65,6 +69,39 @@ export default function AdminPasien() {
       setIsDownloading(false);
     }
   };
+
+  // --- LOGIKA MENGIRIM PASIEN KE ANTREAN DOKTER ---
+  const handlePanggilKeRuangPeriksa = async (pasienId, namaPasien) => {
+    try {
+      setCallingId(pasienId); 
+
+      // 1. CARI REKAM MEDIS ID PASIEN INI
+      const dataRM = await getRekamMedis();
+      const foundRM = dataRM.find((rm) => rm.pasien_id === parseInt(pasienId));
+
+      if (!foundRM) {
+        alert(`Gagal: Pasien ${namaPasien} belum dibuatkan Rekam Medis! Silakan ke menu Rekam Medis dulu.`);
+        return;
+      }
+
+      // 2. KIRIM PAYLOAD YANG SESUAI DENGAN BACKEND
+      await createPemeriksaan({
+        rekam_medis_id: foundRM.id,
+        tanggal_pemeriksaan: new Date().toISOString().split('T')[0],
+        keluhan: "ANTREAN_DARI_ADMIN", 
+        diagnosa: "-",
+        catatan: "-"
+      });
+
+      alert(`Berhasil! Pasien ${namaPasien} telah dikirim ke antrean Dokter.`);
+    } catch (error) {
+      console.error(error);
+      alert("Gagal mengirim pasien. Periksa console.");
+    } finally {
+      setCallingId(null); 
+    }
+  };
+  // ------------------------------------------------
 
   const filteredPasien = pasien.filter(
     (p) =>
@@ -201,7 +238,6 @@ export default function AdminPasien() {
                       </div>
                     </div>
 
-                    {/* Rekam Medis & Pemeriksaan — tetap stacked seperti semula */}
                     <div className="px-3 pb-2 flex flex-col gap-1.5">
                       <Link
                         to={`/admin/rekam-medis/${p.id}`}
@@ -212,9 +248,20 @@ export default function AdminPasien() {
                         </svg>
                         Rekam Medis
                       </Link>
+                      
+                      {/* TOMBOL Kirim Ke Dokter dengan ID Check */}
+                      <button
+                        onClick={() => handlePanggilKeRuangPeriksa(p.id, p.nama)}
+                        disabled={callingId === p.id}
+                        className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 dark:text-blue-300 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-md transition-colors duration-150 disabled:opacity-50"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                        {callingId === p.id ? "Mengirim..." : "Kirim ke Dokter"}
+                      </button>
                     </div>
 
-                    {/* Edit, Kartu, Hapus — tiga kolom sejajar */}
                     <div className="border-t border-gray-100 dark:border-gray-700 flex">
                       <Link
                         to={`/admin/pasien/edit/${p.id}`}
@@ -341,16 +388,22 @@ export default function AdminPasien() {
                                 </svg>
                                 <span>RM</span>
                               </Link>
-                              <Link
-                                to={`/admin/pemeriksaan/create/${p.id}`}
-                                title="Tambah Pemeriksaan"
-                                className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 dark:text-green-300 dark:bg-green-900/30 dark:hover:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-md transition-colors duration-150 whitespace-nowrap"
+
+                              {/* TOMBOL Kirim Ke Dokter Tabel dengan ID Check */}
+                              <button
+                                onClick={() => handlePanggilKeRuangPeriksa(p.id, p.nama)}
+                                disabled={callingId === p.id}
+                                title="Kirim pasien ke antrean dokter"
+                                className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 dark:text-blue-300 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-md transition-colors duration-150 whitespace-nowrap disabled:opacity-50"
                               >
                                 <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                                 </svg>
-                                <span className="hidden sm:inline">Periksa</span>
-                              </Link>
+                                <span className="hidden sm:inline">
+                                  {callingId === p.id ? "Mengirim..." : "Kirim Dokter"}
+                                </span>
+                              </button>
+
                               <Link
                                 to={`/admin/pasien/edit/${p.id}`}
                                 title="Edit Pasien"
@@ -422,7 +475,6 @@ export default function AdminPasien() {
               </button>
             </div>
 
-            {/* KARTU — kembali ke kode asli */}
             <div className="kartu-pasien" ref={kartuRef}>
               <div className="kartu-wave-top" />
               <div className="kartu-wave-bottom" />
