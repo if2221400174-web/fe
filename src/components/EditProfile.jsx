@@ -208,7 +208,7 @@ export default function EditProfile() {
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                    <svg className="w-5 h-5 text-green-600 dark:text-green -400" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
                     </svg>
                   </div>
@@ -369,6 +369,7 @@ export default function EditProfile() {
                   <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{formData.password.length} karakter</p>
                 </div>
               )}
+              
               {/* Foto Profil */}
               <div>
                 <div className="flex items-center justify-between mb-3">
@@ -397,16 +398,17 @@ export default function EditProfile() {
                 </div>
 
                 {!updateFoto ? (
-                  <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl">
+                  // PERBAIKAN 1: Tampilan Foto Lama -> Posisi Tengah & Berbentuk Kotak (rounded-lg)
+                  <div className="flex justify-center p-6 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl">
                     {preview ? (
                       <img
                         src={preview}
                         alt="Foto profil"
-                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
+                        className="w-24 h-24 rounded-lg object-cover border-2 border-gray-200 dark:border-gray-600 shadow-sm"
                       />
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-24 h-24 rounded-lg bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                        <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                       </div>
@@ -434,7 +436,7 @@ export default function EditProfile() {
 
                       {!formData.foto ? (
                         <div>
-                          <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mx-auto mb-3">
+                          <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center mx-auto mb-3">
                             <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
@@ -446,24 +448,25 @@ export default function EditProfile() {
                           </span>
                         </div>
                       ) : (
-                        <div>
+                        // PERBAIKAN 2: Tampilan Preview Foto Baru -> Posisi Tengah (berkat text-center parent) & Bentuk Kotak
+                        <div className="w-full flex flex-col items-center justify-center">
                           <div className="relative inline-block">
                             <img
                               src={preview}
                               alt="Preview baru"
-                              className="w-20 h-20 rounded-full object-cover border-2 border-blue-300 dark:border-blue-700"
+                              className="w-24 h-24 rounded-lg object-cover border-2 border-blue-400 dark:border-blue-600 shadow-sm"
                             />
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); removeNewPhoto(); }}
-                              className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center"
+                              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-md transition-transform hover:scale-110"
                             >
                               <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" />
                               </svg>
                             </button>
                           </div>
-                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-2">
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-4">
                             {formData.foto.name.length > 30 ? formData.foto.name.slice(0, 27) + "..." : formData.foto.name}
                           </p>
                           <p className="text-xs text-gray-500 mt-0.5">
@@ -471,7 +474,7 @@ export default function EditProfile() {
                           </p>
                           <button
                             type="button"
-                            onClick={() => fileInputRef.current?.click()}
+                            onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
                             className="mt-2 text-xs text-blue-600 hover:underline dark:text-blue-400"
                           >
                             Ganti foto lagi
@@ -481,7 +484,7 @@ export default function EditProfile() {
                     </div>
 
                     {existingFoto && !formData.foto && (
-                      <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                      <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-center gap-1">
                         Foto lama tetap digunakan jika tidak ada file baru dipilih
                       </p>
                     )}
