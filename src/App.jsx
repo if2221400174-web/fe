@@ -25,7 +25,6 @@ import DokterPasien from "./pages/dokter/pasien"
 import RekamMedisPasienDok from "./pages/dokter/rekam_medis"
 import DokterPemeriksaan from "./pages/dokter/pemeriksaan"
 import CreatePemeriksaanDok from "./pages/dokter/pemeriksaan/create"
-import DokterTransaksi from "./pages/dokter/transaksi"
 import CreateTransaksiDok from "./pages/dokter/transaksi/create"
 
 function App() {
@@ -91,7 +90,6 @@ function App() {
           </Route>
 
           <Route path="transaksi">
-            <Route index element={<DokterTransaksi />} />
             <Route path="create/:pemeriksaanId" element={<CreateTransaksiDok/>} />
           </Route>
           <Route path="profile/edit" element={<EditProfile/>} />
