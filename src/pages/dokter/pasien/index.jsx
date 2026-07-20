@@ -56,7 +56,7 @@ export default function DokterPasien() {
             return { 
               ...pas, 
               id_pemeriksaan_antrean: token.idpemeriksaan, 
-              urutan_antrean: index + 1 // Urutan #1, #2, #3, dst
+              urutan_antrean: index + 1
             };
         }).filter(Boolean); 
 
@@ -136,7 +136,7 @@ export default function DokterPasien() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="bg-green-100 text-green-700 text-[10px] font-extrabold px-1.5 py-0.5 rounded">
-                          #{pasien.urutan_antrean}
+                          {pasien.urutan_antrean}
                         </span>
                         <p className="font-bold text-gray-800 uppercase text-xs line-clamp-1">{pasien.nama}</p>
                       </div>
