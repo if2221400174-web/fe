@@ -196,8 +196,8 @@ export default function AdminPasien() {
                         {p.kode_rekammedis || "—"}
                       </span>
                     </div>
-                    <div className="px-2 pt-1 pb-0 flex-1">
-                      <h3 className="text-xs font-semibold text-gray-900 dark:text-white text-center truncate uppercase tracking-wide mb-1">
+                    <div className="px-2 pt-2 pb-0 flex-1">
+                      <h3 className="text-xs font-semibold text-gray-900 dark:text-white text-center truncate uppercase tracking-wide mb-1.5">
                         {p.nama}
                       </h3>
                       <div className="border-t border-gray-100 dark:border-gray-700 mb-2" />
@@ -238,10 +238,10 @@ export default function AdminPasien() {
                       </div>
                     </div>
 
-                    <div className="px-3 pb-2 flex flex-col gap-1.5">
+                    <div className="px-3 pb-3 flex flex-col gap-2">
                       <Link
                         to={`/admin/rekam-medis/${p.id}`}
-                        className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 dark:text-green-300 dark:bg-green-900/30 dark:hover:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-md transition-colors duration-150"
+                        className="w-full flex items-center justify-center gap-1.5 py-2 px-2 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 rounded-lg transition-colors duration-150"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -249,46 +249,38 @@ export default function AdminPasien() {
                         Rekam Medis
                       </Link>
                       
-                      {/* TOMBOL Kirim Ke Dokter dengan ID Check */}
+                      {/* TOMBOL Kirim Ke Dokter (Lebih Elegan: Solid Blue) */}
                       <button
                         onClick={() => handlePanggilKeRuangPeriksa(p.id, p.nama)}
                         disabled={callingId === p.id}
-                        className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 dark:text-blue-300 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-md transition-colors duration-150 disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-1.5 py-2 px-2 text-[11px] font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 shadow-sm disabled:opacity-50"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>
-                        {callingId === p.id ? "Mengirim..." : "Kirim ke Dokter"}
+                        {callingId === p.id ? "MENGIRIM..." : "KIRIM ANTRE"}
                       </button>
                     </div>
 
-                    <div className="border-t border-gray-100 dark:border-gray-700 flex">
+                    {/* Tombol Bawah - Tanpa Icon & Text Kapital */}
+                    <div className="border-t border-gray-100 dark:border-gray-700 flex divide-x divide-gray-100 dark:divide-gray-700 bg-gray-50 dark:bg-gray-800/50">
                       <Link
                         to={`/admin/pasien/edit/${p.id}`}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-150 border-r border-gray-100 dark:border-gray-700"
+                        className="flex-1 py-2.5 text-[10px] font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-center"
                       >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        Edit
+                        EDIT
                       </Link>
                       <button
                         onClick={() => handleOpenKartu(p)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors duration-150 border-r border-gray-100 dark:border-gray-700"
+                        className="flex-1 py-2.5 text-[10px] font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-center"
                       >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                        </svg>
-                        Kartu
+                        KARTU
                       </button>
                       <button
                         onClick={() => handleDelete(p.id)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-150"
+                        className="flex-1 py-2.5 text-[10px] font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-center"
                       >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        Hapus
+                        HAPUS
                       </button>
                     </div>
                   </div>
@@ -389,7 +381,6 @@ export default function AdminPasien() {
                                 <span>RM</span>
                               </Link>
 
-                              {/* TOMBOL Kirim Ke Dokter Tabel dengan ID Check */}
                               <button
                                 onClick={() => handlePanggilKeRuangPeriksa(p.id, p.nama)}
                                 disabled={callingId === p.id}
@@ -475,59 +466,64 @@ export default function AdminPasien() {
               </button>
             </div>
 
-            <div className="kartu-pasien" ref={kartuRef}>
-              <div className="kartu-wave-top" />
-              <div className="kartu-wave-bottom" />
+            {/* BUNGKUS DENGAN SCROLL AGAR UKURAN KARTU TIDAK MENGECIL DI HP */}
+            <div className="kartu-modal-scroll">
+              <div className="kartu-pasien-wrapper">
+                <div className="kartu-pasien" ref={kartuRef}>
+                  <div className="kartu-wave-top" />
+                  <div className="kartu-wave-bottom" />
 
-              <div className="kartu-content">
-                <div className="kartu-header">
-                  <div className="kartu-header-text">
-                    <p className="kartu-nama-klinik">{KLINIK_INFO.namaKlinik}</p>
-                    <p className="kartu-nama-dokter">{KLINIK_INFO.namaDokter}</p>
-                    <p className="kartu-sip">{KLINIK_INFO.sip}</p>
-                    <p className="kartu-alamat-klinik">{KLINIK_INFO.alamat}</p>
-                  </div>
-                  <div className="kartu-logo">
-                    <svg viewBox="0 0 24 24" fill="none" className="kartu-logo-icon">
-                      <path
-                        d="M12 2a2 2 0 012 2v6h6a2 2 0 012 2v0a2 2 0 01-2 2h-6v6a2 2 0 01-2 2v0a2 2 0 01-2-2v-6H4a2 2 0 01-2-2v0a2 2 0 012-2h6V4a2 2 0 012-2z"
-                        fill="#15803d"
-                      />
-                    </svg>
+                  <div className="kartu-content">
+                    <div className="kartu-header">
+                      <div className="kartu-header-text">
+                        <p className="kartu-nama-klinik">{KLINIK_INFO.namaKlinik}</p>
+                        <p className="kartu-nama-dokter">{KLINIK_INFO.namaDokter}</p>
+                        <p className="kartu-sip">{KLINIK_INFO.sip}</p>
+                        <p className="kartu-alamat-klinik">{KLINIK_INFO.alamat}</p>
+                      </div>
+                      <div className="kartu-logo">
+                        <svg viewBox="0 0 24 24" fill="none" className="kartu-logo-icon">
+                          <path
+                            d="M12 2a2 2 0 012 2v6h6a2 2 0 012 2v0a2 2 0 01-2 2h-6v6a2 2 0 01-2 2v0a2 2 0 01-2-2v-6H4a2 2 0 01-2-2v0a2 2 0 012-2h6V4a2 2 0 012-2z"
+                            fill="#15803d"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+
+                    <div className="kartu-badge">KARTU BEROBAT</div>
+
+                    <div className="kartu-fields">
+                      <div className="kartu-field-row">
+                        <span className="kartu-field-label">No. RM</span>
+                        <span className="kartu-field-colon">:</span>
+                        <span className="kartu-field-value">{cardPasien.kode_rekammedis || "-"}</span>
+                      </div>
+                      <div className="kartu-field-row">
+                        <span className="kartu-field-label">Nama</span>
+                        <span className="kartu-field-colon">:</span>
+                        <span className="kartu-field-value kartu-field-value-bold">{cardPasien.nama || "-"}</span>
+                      </div>
+                      <div className="kartu-field-row">
+                        <span className="kartu-field-label">Tanggal Lahir</span>
+                        <span className="kartu-field-colon">:</span>
+                        <span className="kartu-field-value">{cardPasien.tanggal_lahir || "-"}</span>
+                      </div>
+                      <div className="kartu-field-row">
+                        <span className="kartu-field-label">Jenis Kelamin</span>
+                        <span className="kartu-field-colon">:</span>
+                        <span className="kartu-field-value">{cardPasien.jenis_kelamin || "-"}</span>
+                      </div>
+                      <div className="kartu-field-row">
+                        <span className="kartu-field-label">Alamat</span>
+                        <span className="kartu-field-colon">:</span>
+                        <span className="kartu-field-value kartu-field-value-kecil">{cardPasien.alamat || "-"}</span>
+                      </div>
+                    </div>
+
+                    <div className="kartu-footer">Kartu harap dibawa setiap kali berobat</div>
                   </div>
                 </div>
-
-                <div className="kartu-badge">KARTU BEROBAT</div>
-
-                <div className="kartu-fields">
-                  <div className="kartu-field-row">
-                    <span className="kartu-field-label">No. RM</span>
-                    <span className="kartu-field-colon">:</span>
-                    <span className="kartu-field-value">{cardPasien.kode_rekammedis || "-"}</span>
-                  </div>
-                  <div className="kartu-field-row">
-                    <span className="kartu-field-label">Nama</span>
-                    <span className="kartu-field-colon">:</span>
-                    <span className="kartu-field-value kartu-field-value-bold">{cardPasien.nama || "-"}</span>
-                  </div>
-                  <div className="kartu-field-row">
-                    <span className="kartu-field-label">Tanggal Lahir</span>
-                    <span className="kartu-field-colon">:</span>
-                    <span className="kartu-field-value">{cardPasien.tanggal_lahir || "-"}</span>
-                  </div>
-                  <div className="kartu-field-row">
-                    <span className="kartu-field-label">Jenis Kelamin</span>
-                    <span className="kartu-field-colon">:</span>
-                    <span className="kartu-field-value">{cardPasien.jenis_kelamin || "-"}</span>
-                  </div>
-                  <div className="kartu-field-row">
-                    <span className="kartu-field-label">Alamat</span>
-                    <span className="kartu-field-colon">:</span>
-                    <span className="kartu-field-value kartu-field-value-kecil">{cardPasien.alamat || "-"}</span>
-                  </div>
-                </div>
-
-                <div className="kartu-footer">Kartu harap dibawa setiap kali berobat</div>
               </div>
             </div>
 
@@ -535,7 +531,7 @@ export default function AdminPasien() {
               <button
                 onClick={handleDownloadGambar}
                 disabled={isDownloading}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-green-700 hover:bg-green-800 rounded-lg disabled:opacity-60 transition-all duration-200"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-green-700 hover:bg-green-800 rounded-lg disabled:opacity-60 transition-all duration-200 shadow-md"
               >
                 {isDownloading ? (
                   <>
@@ -543,14 +539,14 @@ export default function AdminPasien() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                     </svg>
-                    Membuat gambar...
+                    Memproses Gambar...
                   </>
                 ) : (
                   <>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
-                    Unduh Gambar
+                    Unduh Gambar Kartu
                   </>
                 )}
               </button>
@@ -585,8 +581,8 @@ export default function AdminPasien() {
         .kartu-modal-overlay {
           position: fixed;
           inset: 0;
-          background: rgba(15, 23, 42, 0.55);
-          backdrop-filter: blur(2px);
+          background: rgba(15, 23, 42, 0.6);
+          backdrop-filter: blur(3px);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -596,26 +592,46 @@ export default function AdminPasien() {
         .kartu-modal-box {
           background: #fff;
           border-radius: 16px;
-          padding: 20px;
+          padding: 20px 16px;
           width: 100%;
-          max-width: 430px;
+          max-width: 440px;
           box-shadow: 0 20px 50px rgba(0,0,0,0.25);
         }
         .kartu-modal-head {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 16px;
+          margin-bottom: 12px;
+          padding: 0 4px;
         }
-        .kartu-modal-actions {
-          margin-top: 18px;
+        
+        /* PEMBUNGKUS SCROLL KARTU */
+        .kartu-modal-scroll {
+          width: 100%;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          padding-bottom: 8px;
+          scrollbar-width: none; /* Sembunyikan scrollbar agar rapi */
+        }
+        .kartu-modal-scroll::-webkit-scrollbar {
+          display: none;
+        }
+        .kartu-pasien-wrapper {
+          width: max-content;
+          margin: 0 auto;
         }
 
-        /* ===== DESAIN KARTU BEROBAT ===== */
+        .kartu-modal-actions {
+          margin-top: 14px;
+          padding: 0 4px;
+        }
+
+        /* ===== DESAIN KARTU BEROBAT (UKURAN DIKUNCI 400x250) ===== */
         .kartu-pasien {
           position: relative;
-          width: 100%;
-          aspect-ratio: 8 / 5;
+          width: 400px;
+          min-width: 400px;
+          height: 250px;
           border-radius: 14px;
           overflow: hidden;
           background: #ffffff;

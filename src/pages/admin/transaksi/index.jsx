@@ -352,8 +352,9 @@ export default function AdminTransaksi() {
         {viewMode === "semua" ? (
           /* TABEL SEMUA TRANSAKSI */
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left" style={{ minWidth: "900px" }}>
+            <div className="overflow-x-auto scrollbar-thin">
+              {/* NOTE: Lebar minimum 950px agar rapi tidak berdesakan */}
+              <table className="w-full text-sm text-left" style={{ minWidth: "950px" }}>
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                     <th className="px-4 py-3 text-sm font-medium text-gray-500 uppercase w-12">No.</th>
@@ -418,7 +419,7 @@ export default function AdminTransaksi() {
               filteredPerPasien.map((pasien) => (
                 <div key={pasien.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
                   {/* Header Card */}
-                  <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
+                  <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 bg-gray-50/50 dark:bg-gray-800/50">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-lg">
                         {pasien.nama.charAt(0).toUpperCase()}
@@ -428,34 +429,35 @@ export default function AdminTransaksi() {
                         <p className="text-sm text-gray-500">{pasien.transaksi.length} Transaksi</p>
                       </div>
                     </div>
-                    <div className="text-right hidden sm:block">
+                    <div className="text-left sm:text-right mt-2 sm:mt-0">
                       <p className="text-sm text-gray-500">Total Tarif Pasien Ini</p>
                       <p className="text-lg font-bold text-green-600 dark:text-green-400">{formatRupiah(pasien.totalSemua)}</p>
                     </div>
                   </div>
 
                   {/* Tabel Kecil di dalam Card */}
-                  <div className="overflow-x-auto p-4">
-                    <table className="w-full text-sm text-left">
+                  <div className="overflow-x-auto p-4 scrollbar-thin">
+                    {/* INI KUNCI PERBAIKANNYA: minWidth 750px agar tabel horizontal lurus (bisa discroll) dan tidak gepeng-gepeng lagi */}
+                    <table className="w-full text-sm text-left" style={{ minWidth: "750px" }}>
                       <thead>
                         <tr className="text-gray-400 border-b border-gray-100 dark:border-gray-700 pb-2">
                           <th className="pb-2 font-medium w-10">No</th>
-                          <th className="pb-2 font-medium">Tanggal</th>
-                          <th className="pb-2 font-medium text-right">Obat</th>
-                          <th className="pb-2 font-medium text-right">Jasa Medis</th>
-                          <th className="pb-2 font-medium text-right">Total</th>
-                          <th className="pb-2 font-medium text-center">Status</th>
-                          <th className="pb-2 font-medium text-center">Aksi</th>
+                          <th className="pb-2 font-medium w-28">Tanggal</th>
+                          <th className="pb-2 font-medium text-right w-32">Obat</th>
+                          <th className="pb-2 font-medium text-right w-32">Jasa Medis</th>
+                          <th className="pb-2 font-medium text-right w-32">Total</th>
+                          <th className="pb-2 font-medium text-center w-24">Status</th>
+                          <th className="pb-2 font-medium text-center w-32">Aksi</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-50 dark:divide-gray-800/50">
                         {pasien.transaksi.map((t, i) => (
                           <tr key={t.id} className="text-gray-600 dark:text-gray-300 hover:bg-gray-50/50 dark:hover:bg-gray-700/20 transition-colors">
                             <td className="py-3">{i + 1}</td>
-                            <td className="py-3 font-medium text-gray-900 dark:text-gray-100">{formatTanggalPendek(t.created_at)}</td>
-                            <td className="py-3 text-right">{formatRupiah(hitungTotalObat(t))}</td>
-                            <td className="py-3 text-right">{formatRupiah(t.jasa_medis ?? 0)}</td>
-                            <td className="py-3 text-right font-bold text-green-600">{formatRupiah(t.total_tarif ?? 0)}</td>
+                            <td className="py-3 font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">{formatTanggalPendek(t.created_at)}</td>
+                            <td className="py-3 text-right whitespace-nowrap">{formatRupiah(hitungTotalObat(t))}</td>
+                            <td className="py-3 text-right whitespace-nowrap">{formatRupiah(t.jasa_medis ?? 0)}</td>
+                            <td className="py-3 text-right font-bold text-green-600 whitespace-nowrap">{formatRupiah(t.total_tarif ?? 0)}</td>
                             <td className="py-3 text-center">
                               {t.status === "lunas" ? (
                                 <span className="px-2 py-0.5 text-[10px] font-bold text-green-700 bg-green-100 rounded-full whitespace-nowrap">Lunas</span>
@@ -464,7 +466,7 @@ export default function AdminTransaksi() {
                               )}
                             </td>
                             <td className="py-3 text-center">
-                              <div className="inline-flex items-center gap-1.5">
+                              <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
                                 <button 
                                   onClick={() => navigate(`/admin/transaksi/create/${t.pemeriksaan?.id || t.pemeriksaan_id || t.pemeriksaan_idpemeriksaan}`)} 
                                   className={`px-2.5 py-1 text-[11px] font-medium border rounded-md transition-colors ${
@@ -495,7 +497,7 @@ export default function AdminTransaksi() {
 
       </div>
 
-      {/* MODAL EXPORT & CETAK (Tidak ada yang diubah) */}
+      {/* MODAL EXPORT & CETAK */}
       {showExportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 w-full max-w-md">
