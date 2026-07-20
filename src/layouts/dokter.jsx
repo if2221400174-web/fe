@@ -35,8 +35,9 @@ export default function DokterLayout() {
     }
 
     const role = userInfo?.role;
-    if (role !== "dokter") {
-      alert("Access denied. Dokters only.");
+    // PENGAMAN DIPERBARUI: Mengizinkan Admin untuk menyamar ke halaman Dokter
+    if (role !== "dokter" && role !== "admin") {
+      alert("Access denied. Hanya Dokter dan Admin.");
       navigate("/login");
     }
   }, [token, decodedData, navigate, userInfo?.role]);
@@ -103,7 +104,7 @@ export default function DokterLayout() {
                     src={logokesehtan}
                     />
                   </div>
-                  <span className="hidden sm:block text-lg lg:text-xl font-semibold text-gray-100 ">Praktek Umum Mandiri Dr. Rowi</span>
+                  <span className="hidden sm:block text-lg lg:text-xl font-semibold text-gray-100 ">Praktek Dokter Umum dr. Rowi</span>
                 </Link>
               </div>
 
@@ -163,7 +164,7 @@ export default function DokterLayout() {
                               {userInfo?.username}
                             </p>
                             <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-green-200 text-green-700 rounded-full capitalize">
-                              {userInfo?.role}
+                              Dokter
                             </span>
                           </div>
                         </div>
@@ -252,7 +253,6 @@ export default function DokterLayout() {
                   )}
                 </Link>
               </li>
-
               <li>
                 <Link
                   to="/dokter/obat"
@@ -315,27 +315,6 @@ export default function DokterLayout() {
                   </svg>
                   <span className="ml-3">Pemeriksaan</span>
                   {isActive("/dokter/pemeriksaan") && (
-                    <div className="ml-auto w-1 h-6 bg-green-900 rounded-l"></div>
-                  )}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/dokter/transaksi"
-                  className={`flex items-center p-3 text-sm font-medium rounded-lg transition-all duration-200 group ${
-                    isActive("/dokter/transaksi")
-                      ? "bg-green-50 text-green-900"
-                      : "text-gray-700 hover:bg-green-50 hover:text-green-900"
-                  }`}
-                >
-                  <svg className={`w-5 h-5 transition-colors duration-200 ${
-                    isActive("/dokter/transaksi") ? "text-green-900" : "text-gray-500 group-hover:text-green-900"
-                  }`} fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-                    <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
-                  </svg>
-                  <span className="ml-3">Transaksi</span>
-                  {isActive("/dokter/transaksi") && (
                     <div className="ml-auto w-1 h-6 bg-green-900 rounded-l"></div>
                   )}
                 </Link>

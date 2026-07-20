@@ -205,20 +205,6 @@ export default function CreatePemeriksaan() {
                   required
                 />
               </div>
-              <div>
-                <label htmlFor="catatan" className="block text-sm font-semibold text-gray-900 dark:text-white mb-1">
-                  Catatan Edukasi
-                </label>
-                <input
-                  type="text"
-                  name="catatan"
-                  id="catatan"
-                  value={formData.catatan}
-                  onChange={handleChange}
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 block w-full p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-200"
-                  placeholder="cth. perlu kontrol ulang, pantau suhu tubuh, dll"
-                />
-              </div>
             </div>
 
             {/* Form Actions */}

@@ -21,11 +21,7 @@ import Dashboard from "./pages/admin"
 import DokterLayout from "./layouts/dokter"
 import DashboardDokter from "./pages/dokter"
 import DokterObat from "./pages/dokter/obat"
-import CreateObatDok from "./pages/dokter/obat/create"
-import EditObatDok from "./pages/dokter/obat/edit"
 import DokterPasien from "./pages/dokter/pasien"
-import CreatePasienDok from "./pages/dokter/pasien/create"
-import EditPasienDok from "./pages/dokter/pasien/edit"
 import RekamMedisPasienDok from "./pages/dokter/rekam_medis"
 import DokterPemeriksaan from "./pages/dokter/pemeriksaan"
 import CreatePemeriksaanDok from "./pages/dokter/pemeriksaan/create"
@@ -36,10 +32,8 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-
         {/* public */}
         <Route path="/login" element={<Login />} />
-        <Route path="/profile/edit" element={<EditProfile />} />
 
         {/* admin */}
         <Route path="/admin" element={<AdminLayout />}>
@@ -83,14 +77,10 @@ function App() {
           <Route index element={<DashboardDokter />} />
           <Route path="obat">
             <Route index element={<DokterObat />} />
-            <Route path="create" element={<CreateObatDok />} />
-            <Route path="edit/:id" element={<EditObatDok />} />
           </Route>
 
           <Route path="pasien">
             <Route index element={<DokterPasien/>} />
-            <Route path="create" element={<CreatePasienDok/>} />
-            <Route path="edit/:id" element={<EditPasienDok/>} />
           </Route>
 
           <Route path="rekam-medis/:pasienId" element={<RekamMedisPasienDok />} />

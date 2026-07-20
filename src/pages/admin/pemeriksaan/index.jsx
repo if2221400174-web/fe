@@ -1,11 +1,17 @@
 import { useEffect, useState} from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getPemeriksaan, deletePemeriksaan, updatePemeriksaan } from "../../../_sevices/pemeriksaan";
 import { createResep, deleteResep } from "../../../_sevices/resep";
 import { getDetailResep, createDetailResep, deleteDetailResep, updateDetailResep } from "../../../_sevices/detailResep";
 import { getObat } from "../../../_sevices/obat";
 import { getTransaksiByPemeriksaan, updateTransaksi } from "../../../_sevices/transaksi";
 import { userImageStorage } from "../../../_api";
+import { getPasien } from "../../../_sevices/pasien"; // Tambahan API Pasien
+
+// Import untuk PDF dan Excel
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 
 const formatTanggal = (tanggal) =>
   new Date(tanggal).toLocaleDateString("id-ID", {
@@ -91,7 +97,6 @@ function ObatRow({ row, daftarObat, onChange, onRemove, showRemove }) {
 }
 
 // ─── TambahResepPanel ─────────────────────────────────────────────────────────
-
 function TambahResepPanel({ pemeriksaanId, daftarObat, onSaved, onCancel }) {
   const [rows, setRows] = useState([emptyRow()]);
   const [saving, setSaving] = useState(false);
@@ -188,7 +193,6 @@ function TambahResepPanel({ pemeriksaanId, daftarObat, onSaved, onCancel }) {
 }
 
 // ─── EditPemeriksaanPanel ─────────────────────────────────────────────────────
-
 function EditPemeriksaanPanel({ pemeriksaan, onSaved, onCancel }) {
   const [form, setForm] = useState({
     keluhan: pemeriksaan.keluhan ?? "",
@@ -439,7 +443,6 @@ function EditResepPanel({ pemeriksaanId, daftarObatResep, daftarObat, onSaved, o
   );
 }
 
-
 function IconButton({ onClick, disabled, label, variant = "default", children }) {
   const base =
     "relative group rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1";
@@ -537,7 +540,6 @@ function KartuPemeriksaan({
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-
       {/* ── Header kartu ── */}
       <div className="relative">
         <button
@@ -588,7 +590,6 @@ function KartuPemeriksaan({
                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
               </IconButton>
-
               {/* Hapus pemeriksaan */}
               <IconButton
                 label="Hapus Pemeriksaan"
@@ -664,21 +665,17 @@ function KartuPemeriksaan({
 
           {/* ── Resep Obat section ── */}
           <div className="px-5 pb-4">
-            {/* Judul + tombol aksi resep dalam satu baris */}
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-medium text-gray-900 dark:text-gray-500 uppercase tracking-wider">
                 Resep Obat
               </p>
-
-              {/* Tombol aksi resep — di sebelah kanan judul */}
               <div className="flex items-center gap-2">
                 {sudahAdaResep && !showEditResep && (
                   <>
-                    {/* Edit resep */}
                     <div
                       onClick={() => setShowEditResep(true)}
                       disabled={showEditResep}
-                      className="inline-flex items-center gap-"
+                      className="inline-flex items-center gap-1 cursor-pointer"
                     >
                       <button className="hidden md:inline text-[10px] text-blue-700 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded px-1.5 py-0.5">
                         Edit Resep
@@ -688,11 +685,10 @@ function KartuPemeriksaan({
                           d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                       </svg>
                     </div>
-
-                    {/* Hapus resep */}
                     <div
                       onClick={() => setConfirmDeleteResep(true)}
                       disabled={confirmDeleteResep}
+                      className="cursor-pointer"
                     >
                       <svg className="w-5 h-5 text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 focus:ring-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
@@ -701,8 +697,6 @@ function KartuPemeriksaan({
                     </div>
                   </>
                 )}
-
-                {/* Tambah resep — jika belum ada & form belum terbuka */}
                 {!sudahAdaResep && !showForm && (
                   <button
                     type="button"
@@ -718,7 +712,6 @@ function KartuPemeriksaan({
               </div>
             </div>
 
-            {/* Confirm hapus resep — tampil di bawah judul */}
             {confirmDeleteResep && (
               <div className="mb-3">
                 <ConfirmInline
@@ -795,11 +788,7 @@ function KartuPemeriksaan({
 
           {/* Footer kartu */}
           <div className="flex items-center justify-between gap-3 px-5 py-3 bg-gray-50 dark:bg-gray-700/20 border-t border-gray-100 dark:border-gray-700">
-
-            {/* LEFT: USER INFO */}
             <div className="flex items-center gap-2.5 min-w-0">
-              
-              {/* FOTO */}
               <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden flex-shrink-0 border border-gray-300 dark:border-gray-500">
                 {pemeriksaan.user?.foto ? (
                   <img
@@ -813,19 +802,16 @@ function KartuPemeriksaan({
                   </span>
                 )}
               </div>
-
-              {/* TEXT */}
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-gray-900 dark:text-white truncate">
                   {pemeriksaan.user?.username ?? "—"}
                 </p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 capitalize truncate">
-                  {pemeriksaan.user?.role ?? "—"}
+                  {pemeriksaan.user.role === 'admin' ? 'Dokter' : pemeriksaan.user.role}
                 </p>
               </div>
             </div>
 
-            {/* RIGHT: BUTTON */}
             <Link
               to={`/admin/transaksi/create/${pemeriksaan.id}`}
               className="flex-shrink-0 inline-flex items-center justify-center gap-1 px-3 py-1 text-xs font-semibold text-white bg-green-700 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500 rounded-md transition-colors"
@@ -843,18 +829,14 @@ function KartuPemeriksaan({
                   d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
                 />
               </svg>
-
-              {/* Text bisa disembunyikan di HP kalau perlu */}
-              <span>Lakukan Transaksi</span>
+              <span>Lihat Transaksi</span>
             </Link>
-
           </div>
-                  </div>
-                )}
-              </div>
+        </div>
+      )}
+    </div>
   );
 }
-
 
 export default function AdminPemeriksaan() {
   const [pemeriksaanList, setPemeriksaanList] = useState([]);
@@ -862,6 +844,23 @@ export default function AdminPemeriksaan() {
   const [daftarObat, setDaftarObat] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState({});
+  const navigate = useNavigate();
+
+  // State Pencarian Nama Pasien di Daftar Pemeriksaan
+  const [searchPemeriksaan, setSearchPemeriksaan] = useState("");
+
+  // State Modal Export
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportFormat, setExportFormat] = useState("pdf"); // "pdf", "excel", "cetak"
+  const [exportPeriod, setExportPeriod] = useState("semua"); // "semua", "bulanan", "tahunan"
+  const [exportMonth, setExportMonth] = useState(new Date().getMonth() + 1);
+  const [exportYear, setExportYear] = useState(new Date().getFullYear());
+
+  // State Modal Pilih Pasien
+  const [showPasienModal, setShowPasienModal] = useState(false);
+  const [pasienList, setPasienList] = useState([]);
+  const [searchPasien, setSearchPasien] = useState("");
+  const [loadingPasien, setLoadingPasien] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -899,6 +898,224 @@ export default function AdminPemeriksaan() {
   const toggleExpanded = (id) =>
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
 
+  // Helper mendapatkan string list obat & aturan pakai
+  const getObatString = (pemeriksaanId, format = "text") => {
+    const resepList = resepMap[pemeriksaanId];
+    if (!resepList || resepList.length === 0) return "-";
+    
+    if (format === "html") {
+      return resepList.map(r => `&bull; ${r.obat?.nama_obat ?? "-"} <br/><i style="font-size: 11px; color:#555; margin-left: 10px;">${r.aturan_pakai ?? "-"}</i>`).join("<br/>");
+    }
+    // format text biasa (untuk PDF / Excel)
+    return resepList.map(r => `• ${r.obat?.nama_obat ?? "-"} (${r.aturan_pakai ?? "-"})`).join("\n");
+  };
+
+  // Filter Pemeriksaan berdasarkan pencarian
+  const filteredPemeriksaanList = pemeriksaanList.filter(p => {
+    if (!searchPemeriksaan) return true;
+    const nama = p.rekam_medis?.pasien?.nama || "";
+    return nama.toLowerCase().includes(searchPemeriksaan.toLowerCase());
+  });
+
+  const getFilteredDataExport = () => {
+    let filtered = [...filteredPemeriksaanList]; // Ambil hasil pencarian nama
+    if (exportPeriod === "bulanan") {
+      filtered = filtered.filter(item => {
+        const date = new Date(item.tanggal_pemeriksaan);
+        return date.getMonth() + 1 === Number(exportMonth) && date.getFullYear() === Number(exportYear);
+      });
+    } else if (exportPeriod === "tahunan") {
+      filtered = filtered.filter(item => {
+        const date = new Date(item.tanggal_pemeriksaan);
+        return date.getFullYear() === Number(exportYear);
+      });
+    }
+    return filtered;
+  };
+
+  // --- LOGIKA MODAL PASIEN ---
+  const handleOpenTambahPemeriksaan = async () => {
+    setShowPasienModal(true);
+    setLoadingPasien(true);
+    try {
+      const data = await getPasien();
+      setPasienList(data);
+    } catch (err) {
+      console.error("Gagal mengambil data pasien", err);
+    } finally {
+      setLoadingPasien(false);
+    }
+  };
+
+  const filteredPasienList = pasienList.filter(p => {
+    if (!searchPasien) return true;
+    const nama = p.nama || "";
+    const kode = p.kode_rekammedis || "";
+    return nama.toLowerCase().includes(searchPasien.toLowerCase()) || 
+           kode.toLowerCase().includes(searchPasien.toLowerCase());
+  });
+  // ---------------------------
+
+  const handleExportPDF = (dataList) => {
+    try {
+      const doc = new jsPDF("landscape");
+      doc.text("Laporan Hasil Pemeriksaan", 14, 15);
+      doc.setFontSize(10);
+      let subtitle = `Klinik Praktek Dokter Umum dr. Rowi - Dicetak: ${new Date().toLocaleString("id-ID")}`;
+      if (exportPeriod === "bulanan") subtitle += ` | Periode: Bulan ${exportMonth} Tahun ${exportYear}`;
+      if (exportPeriod === "tahunan") subtitle += ` | Periode: Tahun ${exportYear}`;
+      doc.text(subtitle, 14, 22);
+
+      const tableColumn = ["No", "Tanggal", "Pasien", "Keluhan", "Diagnosa", "Catatan", "Obat & Aturan Pakai"];
+      const tableRows = [];
+
+      dataList.forEach((p, index) => {
+        const rowData = [
+          index + 1,
+          formatTanggal(p.tanggal_pemeriksaan),
+          p.rekam_medis?.pasien?.nama ?? "-",
+          p.keluhan ?? "-",
+          p.diagnosa ?? "-",
+          p.catatan ?? "-",
+          getObatString(p.id, "text")
+        ];
+        tableRows.push(rowData);
+      });
+
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 28,
+        theme: 'grid',
+        styles: { fontSize: 8, cellPadding: 2, valign: 'middle' },
+        columnStyles: {
+          6: { cellWidth: 45 } 
+        },
+        headStyles: { fillColor: [22, 163, 74] } 
+      });
+
+      doc.save(`Laporan_Pemeriksaan_${new Date().getTime()}.pdf`);
+    } catch (error) {
+      console.error("Gagal export PDF:", error);
+      alert("Terjadi kesalahan saat mengekspor ke PDF.");
+    }
+  };
+
+  const handleExportExcel = (dataList) => {
+    try {
+      const dataToExport = dataList.map((p, index) => ({
+        "No": index + 1,
+        "Tanggal": formatTanggal(p.tanggal_pemeriksaan),
+        "Nama Pasien": p.rekam_medis?.pasien?.nama ?? "-",
+        "Dokter Pemeriksa": p.user?.username ?? "-",
+        "Keluhan": p.keluhan ?? "-",
+        "Diagnosa": p.diagnosa ?? "-",
+        "Catatan Edukasi": p.catatan ?? "-",
+        "Obat & Aturan Pakai": getObatString(p.id, "text")
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Pemeriksaan");
+      
+      worksheet['!cols'] = [
+        { wch: 5 }, { wch: 18 }, { wch: 25 }, { wch: 20 }, { wch: 30 }, { wch: 25 }, { wch: 25 }, { wch: 40 }
+      ];
+
+      XLSX.writeFile(workbook, `Laporan_Pemeriksaan_${new Date().getTime()}.xlsx`);
+    } catch (error) {
+      console.error("Gagal export Excel:", error);
+      alert("Terjadi kesalahan saat mengekspor ke Excel.");
+    }
+  };
+
+  const handleCetak = (dataList) => {
+    const printWindow = window.open("", "_blank");
+    
+    let tableRows = "";
+    dataList.forEach((p, index) => {
+      tableRows += `
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${index + 1}</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${formatTanggal(p.tanggal_pemeriksaan)}</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${p.rekam_medis?.pasien?.nama ?? "-"}</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${p.keluhan ?? "-"}</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${p.diagnosa ?? "-"}</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${p.catatan ?? "-"}</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${getObatString(p.id, "html")}</td>
+        </tr>
+      `;
+    });
+
+    let subtitle = `Dicetak pada: ${new Date().toLocaleString("id-ID")}`;
+    if (exportPeriod === "bulanan") subtitle += `<br/>Periode: Bulan ${exportMonth} Tahun ${exportYear}`;
+    if (exportPeriod === "tahunan") subtitle += `<br/>Periode: Tahun ${exportYear}`;
+
+    const html = `
+      <html>
+        <head>
+          <title>Laporan Hasil Pemeriksaan</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+            h2 { text-align: center; margin-bottom: 5px; }
+            p { text-align: center; margin-top: 0; color: #666; font-size: 14px; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+            th { background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd; text-align: left; }
+            td { padding: 8px; border: 1px solid #ddd; vertical-align: top; }
+            @media print {
+              @page { size: landscape; margin: 10mm; }
+            }
+          </style>
+        </head>
+        <body>
+          <h2>Laporan Hasil Pemeriksaan</h2>
+          <p>Klinik Praktek Dokter Umum dr. Rowi<br/>${subtitle}</p>
+          
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 3%; text-align: center;">No</th>
+                <th style="width: 12%;">Tanggal</th>
+                <th style="width: 15%;">Pasien</th>
+                <th style="width: 15%;">Keluhan</th>
+                <th style="width: 15%;">Diagnosa</th>
+                <th style="width: 15%;">Catatan</th>
+                <th style="width: 25%;">Obat & Aturan Pakai</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+    
+    printWindow.document.write(html);
+    printWindow.document.close();
+    
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
+  };
+
+  const executeExport = () => {
+    const dataToExport = getFilteredDataExport();
+    if (dataToExport.length === 0) {
+      alert("Tidak ada data pemeriksaan pada periode yang dipilih.");
+      return;
+    }
+
+    if (exportFormat === "pdf") {
+      handleExportPDF(dataToExport);
+    } else if (exportFormat === "excel") {
+      handleExportExcel(dataToExport);
+    } else {
+      handleCetak(dataToExport);
+    }
+    setShowExportModal(false);
+  };
+
   if (loading) {
     return (
       <section className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
@@ -911,7 +1128,7 @@ export default function AdminPemeriksaan() {
   }
 
   return (
-    <section className="bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <section className="bg-gray-50 dark:bg-gray-900 min-h-screen relative">
       <div className="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="text-center sm:text-left">
@@ -923,27 +1140,61 @@ export default function AdminPemeriksaan() {
             </p>
           </div>
         </div>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-white tracking-tight">
-            Hasil Semua Pemeriksaan
-          </h2>
-          <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-full font-medium">
-            {pemeriksaanList.length} Pemeriksaan
-          </span>
+        
+        <div className="mb-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex items-center gap-3">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white tracking-tight">
+              Daftar Pemeriksaan
+            </h2>
+            <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-full font-medium">
+              {filteredPemeriksaanList.length} Pemeriksaan
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+            {/* Input Pencarian Pemeriksaan */}
+            <div className="relative w-full sm:w-64">
+              <input
+                type="text"
+                placeholder="Cari nama pasien..."
+                value={searchPemeriksaan}
+                onChange={(e) => setSearchPemeriksaan(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-shadow"
+              />
+              <svg className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              {pemeriksaanList.length > 0 && (
+                <button
+                  onClick={() => setShowExportModal(true)}
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                  Export / Cetak
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
-        {pemeriksaanList.length === 0 ? (
+        {filteredPemeriksaanList.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 text-center py-14">
             <svg className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <p className="text-sm font-semibold text-gray-700 dark:text-white mb-1">Belum Ada Pemeriksaan</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mb-5">Belum ada catatan pemeriksaan yang tersimpan.</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500">Tambah pemeriksaan melalui menu daftar pasien.</p>
+            <p className="text-sm font-semibold text-gray-700 dark:text-white mb-1">
+              {searchPemeriksaan ? "Pemeriksaan Tidak Ditemukan" : "Belum Ada Pemeriksaan"}
+            </p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mb-5">
+              {searchPemeriksaan ? "Tidak ada nama pasien yang cocok dengan pencarian." : "Belum ada catatan pemeriksaan yang tersimpan."}
+            </p>
           </div>
         ) : (
           <div className="space-y-3">
-            {pemeriksaanList.map((p, index) => (
+            {filteredPemeriksaanList.map((p, index) => (
               <KartuPemeriksaan
                 key={p.id}
                 pemeriksaan={p}
@@ -959,6 +1210,162 @@ export default function AdminPemeriksaan() {
           </div>
         )}
       </div>
+
+      {/* MODAL EXPORT & CETAK */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 border-b pb-2 dark:border-gray-700">Export / Cetak Laporan</h3>
+            
+            <div className="space-y-5">
+              {/* Format File */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pilih Format</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer hover:text-blue-600 transition-colors">
+                    <input type="radio" value="pdf" checked={exportFormat === "pdf"} onChange={(e) => setExportFormat(e.target.value)} className="w-4 h-4 text-blue-600" />
+                    Download PDF
+                  </label>
+                  <label className="flex items-center gap-2 text-sm cursor-pointer hover:text-blue-600 transition-colors">
+                    <input type="radio" value="excel" checked={exportFormat === "excel"} onChange={(e) => setExportFormat(e.target.value)} className="w-4 h-4 text-blue-600" />
+                    Download Excel
+                  </label>
+                  <label className="flex items-center gap-2 text-sm cursor-pointer hover:text-blue-600 transition-colors">
+                    <input type="radio" value="cetak" checked={exportFormat === "cetak"} onChange={(e) => setExportFormat(e.target.value)} className="w-4 h-4 text-blue-600" />
+                    Cetak (Print)
+                  </label>
+                </div>
+              </div>
+
+              {/* Periode */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Periode Laporan</label>
+                <select 
+                  value={exportPeriod} 
+                  onChange={(e) => setExportPeriod(e.target.value)}
+                  className="w-full text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2.5 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="semua">Semua Data</option>
+                  <option value="bulanan">Bulan Tertentu</option>
+                  <option value="tahunan">Tahun Tertentu</option>
+                </select>
+
+                {/* Filter Tambahan jika Bulanan/Tahunan */}
+                {exportPeriod !== "semua" && (
+                  <div className="grid grid-cols-2 gap-3 mt-2">
+                    {exportPeriod === "bulanan" && (
+                      <select
+                        value={exportMonth}
+                        onChange={(e) => setExportMonth(e.target.value)}
+                        className="w-full text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="1">Januari</option>
+                        <option value="2">Februari</option>
+                        <option value="3">Maret</option>
+                        <option value="4">April</option>
+                        <option value="5">Mei</option>
+                        <option value="6">Juni</option>
+                        <option value="7">Juli</option>
+                        <option value="8">Agustus</option>
+                        <option value="9">September</option>
+                        <option value="10">Oktober</option>
+                        <option value="11">November</option>
+                        <option value="12">Desember</option>
+                      </select>
+                    )}
+                    
+                    <select
+                      value={exportYear}
+                      onChange={(e) => setExportYear(e.target.value)}
+                      className={`w-full text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${exportPeriod === "tahunan" ? "col-span-2" : ""}`}
+                    >
+                      {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-8">
+              <button onClick={() => setShowExportModal(false)} className="px-5 py-2 text-sm text-gray-700 font-medium bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">Batal</button>
+              <button onClick={executeExport} className="px-5 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 font-semibold transition-colors shadow-sm">
+                Lanjutkan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL PILIH PASIEN UNTUK TAMBAH PEMERIKSAAN */}
+      {showPasienModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 w-full max-w-lg max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between mb-4 border-b pb-3 dark:border-gray-700">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Pilih Pasien</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Cari pasien yang akan diperiksa</p>
+              </div>
+              <button onClick={() => setShowPasienModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            <div className="relative mb-4">
+              <input
+                type="text"
+                placeholder="Ketik nama atau kode rekam medis pasien..."
+                value={searchPasien}
+                onChange={(e) => setSearchPasien(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+              <svg className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+
+            <div className="flex-1 overflow-y-auto min-h-[250px] mb-4 pr-1">
+              {loadingPasien ? (
+                <div className="flex flex-col items-center justify-center h-40">
+                  <div className="w-8 h-8 border-3 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-sm text-gray-500 mt-2">Memuat daftar pasien...</p>
+                </div>
+              ) : filteredPasienList.length > 0 ? (
+                <div className="space-y-2">
+                  {filteredPasienList.map(pasien => (
+                    <button
+                      key={pasien.id}
+                      onClick={() => navigate(`/admin/pemeriksaan/create/${pasien.id}`)}
+                      className="w-full flex items-center justify-between p-3 text-left border border-gray-200 dark:border-gray-700 rounded-lg hover:border-green-500 dark:hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all group"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors">{pasien.nama}</p>
+                        <p className="text-xs text-gray-500">{pasien.kode_rekammedis || "Tidak ada kode RM"} &bull; {pasien.umur ? `${pasien.umur} Th` : "—"}</p>
+                      </div>
+                      <svg className="w-5 h-5 text-gray-300 group-hover:text-green-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-40 text-center">
+                  <svg className="w-10 h-10 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Pasien tidak ditemukan</p>
+                  <p className="text-xs text-gray-500 mt-1">Pasien yang dicari belum terdaftar atau namanya salah.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="border-t pt-4 dark:border-gray-700">
+              <button
+                onClick={() => navigate("/admin/pasien/create")}
+                className="w-full inline-flex justify-center items-center gap-2 px-4 py-2.5 text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 rounded-lg transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                Tambah Pasien Baru
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

@@ -1,11 +1,23 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { getPasien } from "../../../_sevices/pasien";
+import { toPng } from "html-to-image";
+import { deletePasien, getPasien } from "../../../_sevices/pasien";
+
+// Ubah di sini kalau ada informasi klinik yang perlu dikoreksi
+const KLINIK_INFO = {
+  namaKlinik: "PRAKTEK DOKTER UMUM",
+  namaDokter: "dr. Rowi",
+  sip: "SIP. No. 503/185/SIPD/X/2023",
+  alamat: "Kec. Guluk-Guluk, Kab. Sumenep, Jawa Timur",
+};
 
 export default function DokterPasien() {
   const [pasien, setPasien] = useState([]);
   const [viewMode, setViewMode] = useState("card");
   const [searchQuery, setSearchQuery] = useState("");
+  const [cardPasien, setCardPasien] = useState(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const kartuRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -17,6 +29,34 @@ export default function DokterPasien() {
     };
     fetchData();
   }, []);
+
+  const handleOpenKartu = (patient) => setCardPasien(patient);
+  const handleCloseKartu = () => setCardPasien(null);
+
+  const handleDownloadGambar = async () => {
+    if (!kartuRef.current) return;
+    setIsDownloading(true);
+
+    try {
+      const dataUrl = await toPng(kartuRef.current, {
+        cacheBust: true,
+        pixelRatio: 3, // Sama seperti scale: 3 di html2canvas
+        backgroundColor: null,
+      });
+
+      const link = document.createElement("a");
+      link.download = `kartu-berobat-${(cardPasien?.nama || "pasien")
+        .toLowerCase()
+        .replace(/\s+/g, "-")}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (error) {
+      console.error("Gagal membuat gambar kartu:", error);
+      alert("Gagal membuat gambar kartu. Silakan coba lagi.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const filteredPasien = pasien.filter(
     (p) =>
@@ -34,7 +74,7 @@ export default function DokterPasien() {
               Manajemen Pasien
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Kelola daftar pasien Praktek Umum Mandiri Dr. Rowi
+              Kelola daftar pasien Praktek Dokter Umum dr. Rowi
             </p>
           </div>
 
@@ -84,16 +124,6 @@ export default function DokterPasien() {
                     </svg>
                   </button>
                 </div>
-
-                <Link
-                  to={"/dokter/pasien/create"}
-                  className="flex items-center justify-center gap-2 bg-green-700 hover:bg-green-800 text-white font-medium rounded-lg text-sm px-4 py-2.5 transition-all duration-200 shadow-md hover:shadow-lg flex-1 sm:flex-initial"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
-                  </svg>
-                  <span>Tambah</span>
-                </Link>
               </div>
             </div>
           </div>
@@ -152,6 +182,8 @@ export default function DokterPasien() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Rekam Medis & Pemeriksaan — tetap stacked seperti semula */}
                     <div className="px-3 pb-2 flex flex-col gap-1.5">
                       <Link
                         to={`/dokter/rekam-medis/${p.id}`}
@@ -172,16 +204,17 @@ export default function DokterPasien() {
                         Pemeriksaan
                       </Link>
                     </div>
+
                     <div className="border-t border-gray-100 dark:border-gray-700 flex">
-                      <Link
-                        to={`/dokter/pasien/edit/${p.id}`}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-150 border-r border-gray-100 dark:border-gray-700"
+                      <button
+                        onClick={() => handleOpenKartu(p)}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors duration-150 border-r border-gray-100 dark:border-gray-700"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                         </svg>
-                        Edit
-                      </Link>
+                        Kartu
+                      </button>
                     </div>
                   </div>
                 ))
@@ -192,18 +225,10 @@ export default function DokterPasien() {
                   </svg>
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Tidak ada pasien ditemukan</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-                    {searchQuery ? "Tidak ada hasil yang sesuai dengan pencarian" : "Belum ada pasien yang terdaftar"}
+                    {searchQuery ? "Tidak ada hasil yang sesuai dengan pencarian. Silahkan ke admin untuk mendafatarkan pasien" : "Belum ada pasien yang terdaftar"}
                   </p>
                   {!searchQuery && (
-                    <Link
-                      to="/dokter/pasien/create"
-                      className="inline-flex items-center gap-2 bg-green-700 hover:bg-green-800 text-white font-medium rounded-lg text-sm px-6 py-3 transition-all duration-200"
-                    >
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
-                      </svg>
-                      Tambah Pasien
-                    </Link>
+                    <span>Silahkan ke admin untuk mendafatarkan pasien</span>
                   )}
                 </div>
               )}
@@ -213,15 +238,15 @@ export default function DokterPasien() {
               <div className="overflow-x-auto">
                 <table
                   className="text-sm text-left text-gray-500 dark:text-gray-400"
-                  style={{ minWidth: "900px", width: "100%", tableLayout: "fixed" }}
+                  style={{ minWidth: "980px", width: "100%", tableLayout: "fixed" }}
                 >
                   <colgroup>
-                    <col style={{ width: "180px" }} />
-                    <col style={{ width: "150px" }} />
-                    <col style={{ width: "220px" }} />
-                    <col style={{ width: "90px" }} />
-                    <col style={{ width: "110px" }} />
+                    <col style={{ width: "170px" }} />
+                    <col style={{ width: "140px" }} />
                     <col style={{ width: "200px" }} />
+                    <col style={{ width: "80px" }} />
+                    <col style={{ width: "100px" }} />
+                    <col style={{ width: "260px" }} />
                   </colgroup>
                   <thead className="text-sm text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
@@ -290,15 +315,15 @@ export default function DokterPasien() {
                                 </svg>
                                 <span className="hidden sm:inline">Periksa</span>
                               </Link>
-                              <Link
-                                to={`/dokter/pasien/edit/${p.id}`}
-                                title="Edit Pasien"
-                                className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-800 rounded-md transition-colors duration-150"
+                              <button
+                                onClick={() => handleOpenKartu(p)}
+                                title="Kartu Berobat"
+                                className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 dark:text-purple-300 dark:bg-purple-900/30 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800 rounded-md transition-colors duration-150"
                               >
                                 <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                                 </svg>
-                              </Link>
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -325,6 +350,109 @@ export default function DokterPasien() {
         </div>
       </section>
 
+      {/* MODAL PREVIEW KARTU BEROBAT */}
+      {cardPasien && (
+        <div className="kartu-modal-overlay" onClick={handleCloseKartu}>
+          <div className="kartu-modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="kartu-modal-head">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                Pratinjau Kartu Berobat
+              </h3>
+              <button
+                onClick={handleCloseKartu}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* KARTU — kembali ke kode asli */}
+            <div className="kartu-pasien" ref={kartuRef}>
+              <div className="kartu-wave-top" />
+              <div className="kartu-wave-bottom" />
+
+              <div className="kartu-content">
+                <div className="kartu-header">
+                  <div className="kartu-header-text">
+                    <p className="kartu-nama-klinik">{KLINIK_INFO.namaKlinik}</p>
+                    <p className="kartu-nama-dokter">{KLINIK_INFO.namaDokter}</p>
+                    <p className="kartu-sip">{KLINIK_INFO.sip}</p>
+                    <p className="kartu-alamat-klinik">{KLINIK_INFO.alamat}</p>
+                  </div>
+                  <div className="kartu-logo">
+                    <svg viewBox="0 0 24 24" fill="none" className="kartu-logo-icon">
+                      <path
+                        d="M12 2a2 2 0 012 2v6h6a2 2 0 012 2v0a2 2 0 01-2 2h-6v6a2 2 0 01-2 2v0a2 2 0 01-2-2v-6H4a2 2 0 01-2-2v0a2 2 0 012-2h6V4a2 2 0 012-2z"
+                        fill="#15803d"
+                      />
+                    </svg>
+                  </div>
+                </div>
+
+                <div className="kartu-badge">KARTU BEROBAT</div>
+
+                <div className="kartu-fields">
+                  <div className="kartu-field-row">
+                    <span className="kartu-field-label">No. RM</span>
+                    <span className="kartu-field-colon">:</span>
+                    <span className="kartu-field-value">{cardPasien.kode_rekammedis || "-"}</span>
+                  </div>
+                  <div className="kartu-field-row">
+                    <span className="kartu-field-label">Nama</span>
+                    <span className="kartu-field-colon">:</span>
+                    <span className="kartu-field-value kartu-field-value-bold">{cardPasien.nama || "-"}</span>
+                  </div>
+                  <div className="kartu-field-row">
+                    <span className="kartu-field-label">Tanggal Lahir</span>
+                    <span className="kartu-field-colon">:</span>
+                    <span className="kartu-field-value">{cardPasien.tanggal_lahir || "-"}</span>
+                  </div>
+                  <div className="kartu-field-row">
+                    <span className="kartu-field-label">Jenis Kelamin</span>
+                    <span className="kartu-field-colon">:</span>
+                    <span className="kartu-field-value">{cardPasien.jenis_kelamin || "-"}</span>
+                  </div>
+                  <div className="kartu-field-row">
+                    <span className="kartu-field-label">Alamat</span>
+                    <span className="kartu-field-colon">:</span>
+                    <span className="kartu-field-value kartu-field-value-kecil">{cardPasien.alamat || "-"}</span>
+                  </div>
+                </div>
+
+                <div className="kartu-footer">Kartu harap dibawa setiap kali berobat</div>
+              </div>
+            </div>
+
+            <div className="kartu-modal-actions">
+              <button
+                onClick={handleDownloadGambar}
+                disabled={isDownloading}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-green-700 hover:bg-green-800 rounded-lg disabled:opacity-60 transition-all duration-200"
+              >
+                {isDownloading ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    Membuat gambar...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Unduh Gambar
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
         .line-clamp-2 {
           display: -webkit-box;
@@ -346,6 +474,177 @@ export default function DokterPasien() {
         .dark .scrollbar-thin { scrollbar-color: #4b5563 transparent; }
         .dark .scrollbar-thin::-webkit-scrollbar-thumb { background-color: #4b5563; }
         .dark .scrollbar-thin::-webkit-scrollbar-thumb:hover { background-color: #6b7280; }
+
+        /* ===== MODAL PRATINJAU KARTU ===== */
+        .kartu-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(15, 23, 42, 0.55);
+          backdrop-filter: blur(2px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 100;
+          padding: 16px;
+        }
+        .kartu-modal-box {
+          background: #fff;
+          border-radius: 16px;
+          padding: 20px;
+          width: 100%;
+          max-width: 430px;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+        }
+        .kartu-modal-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 16px;
+        }
+        .kartu-modal-actions {
+          margin-top: 18px;
+        }
+
+        /* ===== DESAIN KARTU BEROBAT ===== */
+        .kartu-pasien {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 8 / 5;
+          border-radius: 14px;
+          overflow: hidden;
+          background: #ffffff;
+          box-shadow: 0 8px 20px rgba(21, 128, 61, 0.15);
+          font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        .kartu-wave-top {
+          position: absolute;
+          top: -18%;
+          left: -18%;
+          width: 65%;
+          height: 75%;
+          background: linear-gradient(135deg, #15803d 0%, #22c55e 55%, #86efac 100%);
+          clip-path: polygon(0 0, 100% 0, 45% 65%, 15% 100%, 0 100%);
+          z-index: 0;
+        }
+        .kartu-wave-bottom {
+          position: absolute;
+          bottom: -10%;
+          left: -8%;
+          width: 116%;
+          height: 22%;
+          background: linear-gradient(90deg, #15803d, #4ade80);
+          border-radius: 100% 100% 0 0 / 100% 100% 0 0;
+          z-index: 0;
+        }
+        .kartu-content {
+          position: relative;
+          z-index: 1;
+          height: 100%;
+          padding: 14px 16px 10px;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+        }
+        .kartu-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 8px;
+        }
+        .kartu-nama-klinik {
+          margin: 0;
+          font-size: 10.5px;
+          font-weight: 700;
+          letter-spacing: 0.4px;
+          color: #14532d;
+        }
+        .kartu-nama-dokter {
+          margin: 1px 0 0;
+          font-size: 9.5px;
+          font-weight: 600;
+          color: #1f2937;
+        }
+        .kartu-sip {
+          margin: 2px 0 0;
+          font-size: 6.5px;
+          color: #4b5563;
+        }
+        .kartu-alamat-klinik {
+          margin: 1px 0 0;
+          font-size: 6.5px;
+          color: #4b5563;
+        }
+        .kartu-logo {
+          flex-shrink: 0;
+          width: 26px;
+          height: 26px;
+          border-radius: 50%;
+          background: #ffffff;
+          border: 1.5px solid #16a34a;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+        .kartu-logo-icon {
+          width: 14px;
+          height: 14px;
+        }
+        .kartu-badge {
+          align-self: flex-start;
+          margin-top: 6px;
+          font-size: 7px;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          color: #ffffff;
+          background: linear-gradient(90deg, #f59e0b, #fb923c);
+          padding: 3px 9px;
+          border-radius: 999px;
+        }
+        .kartu-fields {
+          margin-top: 8px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          flex: 1;
+        }
+        .kartu-field-row {
+          display: flex;
+          align-items: baseline;
+          gap: 4px;
+          font-size: 9px;
+        }
+        .kartu-field-label {
+          width: 78px;
+          flex-shrink: 0;
+          font-weight: 600;
+          color: #374151;
+        }
+        .kartu-field-colon {
+          color: #374151;
+        }
+        .kartu-field-value {
+          flex: 1;
+          color: #111827;
+          border-bottom: 1px dotted #d1d5db;
+          padding-bottom: 1px;
+        }
+        .kartu-field-value-bold {
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+        .kartu-field-value-kecil {
+          font-size: 8px;
+          text-transform: capitalize;
+          line-height: 1.3;
+        }
+        .kartu-footer {
+          text-align: center;
+          font-size: 6px;
+          font-style: italic;
+          color: #6b7280;
+          margin-top: 6px;
+        }
       `}</style>
     </>
   );

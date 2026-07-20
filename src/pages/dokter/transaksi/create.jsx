@@ -27,17 +27,10 @@ export default function CreateTransaksiDok() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch semua transaksi (GET /transaksi → index())
-        // Response backend sudah eager load: pemeriksaan.resep.details.obat
-        // sehingga kita bisa ambil data resep langsung dari dalam transaksi
         const allTransaksi = await getTransaksi();
-        console.log("allTransaksi:", allTransaksi);
-        // Cari transaksi yang sudah ada untuk pemeriksaan ini
         const existingFound = allTransaksi.find(
           (t) => t.pemeriksaan_id === Number(pemeriksaanId)
         );
-        console.log("semua field pemeriksaan:", Object.keys(existingFound?.pemeriksaan || {}));
-        console.log("full object:", JSON.stringify(existingFound?.pemeriksaan || {}, null, 2));
 
         if (existingFound) {
           setExistingTransaksi(existingFound);
@@ -62,9 +55,6 @@ export default function CreateTransaksiDok() {
     fetchData();
   }, [pemeriksaanId]);
 
-  // ── Hitung total harga obat dari resep ──
-  // Struktur eager load backend: pemeriksaan.resep[].details[].obat
-  // Nama relasi "details" sesuai dengan yang didefinisikan di model Resep Laravel
   const daftarObat =
     pemeriksaan?.resep?.flatMap((r) =>
       r.details?.map((d) => ({
@@ -78,12 +68,9 @@ export default function CreateTransaksiDok() {
   const jasaMedisNum = Number(jasaMedis) || 0;
   const totalTarif = totalObat + jasaMedisNum;
 
-  // Nama pasien dari relasi rekam_medis → pasien
   const namaPasien =
-    pemeriksaan?.rekam_medis?.pasien?.nama ??
-    "—";
+    pemeriksaan?.rekam_medis?.pasien?.nama ?? "—";
 
-  // ── Submit transaksi ──
   const handleSubmit = async () => {
     if (!jasaMedis || jasaMedisNum < 0) {
       setError("Masukkan jasa medis yang valid (minimal Rp 0).");
@@ -92,19 +79,16 @@ export default function CreateTransaksiDok() {
     setError("");
     setSaving(true);
     try {
-      // POST /transaksi → store() di backend
-      // Body: { pemeriksaan_id, jasa_medis }
-      // Backend menghitung: total_tarif = jasa_medis + sum(harga_obat dari detail resep)
       await createTransaksi({
         pemeriksaan_id: Number(pemeriksaanId),
         jasa_medis: jasaMedisNum,
       });
-      navigate("/dokter/transaksi", { replace: true });
+      // Setelah dokter mengirim, arahkan kembali ke daftar pemeriksaan
+      navigate("/dokter/pemeriksaan", { replace: true });
     } catch (err) {
       console.error(err);
-      // Backend mengembalikan 409 jika transaksi sudah ada (guard di store())
       if (err?.response?.status === 409) {
-        setError("Transaksi untuk pemeriksaan ini sudah pernah dibuat.");
+        setError("Transaksi untuk pemeriksaan ini sudah pernah diajukan.");
       } else {
         setError("Gagal menyimpan transaksi. Coba lagi.");
       }
@@ -113,7 +97,6 @@ export default function CreateTransaksiDok() {
     }
   };
 
-  // ── Loading ──
   if (loading) {
     return (
       <section className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
@@ -127,7 +110,6 @@ export default function CreateTransaksiDok() {
     );
   }
 
-  // ── Error fatal ──
   if (!pemeriksaan) {
     return (
       <section className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
@@ -146,14 +128,16 @@ export default function CreateTransaksiDok() {
     );
   }
 
-  const sudahBayar = existingTransaksi !== null;
+  // --- Kunci Logika Status Transaksi Baru ---
+  const sudahDiajukan = existingTransaksi !== null;
+  const sudahLunas = existingTransaksi?.status === 'lunas';
 
   return (
     <section className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-2xl mx-auto px-3 sm:px-6 py-8">
         <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
-            {sudahBayar ? "Detail Transaksi" : "Buat Transaksi"}
+            {sudahLunas ? "Detail Transaksi (Lunas)" : sudahDiajukan ? "Menunggu Pembayaran" : "Input Jasa Medis"}
           </h1>
           <p className="text-sm font-semibold text-green-700 dark:text-green-400 mb-0.5">
             {namaPasien}
@@ -166,19 +150,37 @@ export default function CreateTransaksiDok() {
           </p>
         </div>
 
-        {/* ── Badge sudah bayar ── */}
-        {sudahBayar && (
-          <div className="mb-5 flex items-center gap-2.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-xl px-4 py-3">
-            <div className="w-7 h-7 rounded-full bg-green-100 dark:bg-green-800/40 flex items-center justify-center flex-shrink-0">
-              <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
+        {/* ── Badge Status Pembayaran ── */}
+        {sudahDiajukan && (
+          <div className={`mb-5 flex items-center gap-2.5 border rounded-xl px-4 py-3 ${
+            sudahLunas 
+              ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/50" 
+              : "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/50"
+          }`}>
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
+              sudahLunas 
+                ? "bg-green-100 dark:bg-green-800/40" 
+                : "bg-amber-100 dark:bg-amber-800/40"
+            }`}>
+              {sudahLunas ? (
+                <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              )}
             </div>
             <div>
-              <p className="text-sm font-semibold text-green-800 dark:text-green-300">
-                Transaksi Berhasil Disimpan
+              <p className={`text-sm font-semibold ${
+                sudahLunas ? "text-green-800 dark:text-green-300" : "text-amber-800 dark:text-amber-300"
+              }`}>
+                {sudahLunas ? "Transaksi Telah Lunas" : "Draft Transaksi Telah Dikirim ke Admin"}
               </p>
-              <p className="text-xs text-green-600 dark:text-green-400">
+              <p className={`text-xs ${
+                sudahLunas ? "text-green-600 dark:text-green-400" : "text-amber-700 dark:text-amber-400"
+              }`}>
                 Total tarif: {formatRupiah(existingTransaksi.total_tarif)}
               </p>
             </div>
@@ -215,8 +217,6 @@ export default function CreateTransaksiDok() {
             </p>
           </div>
           
-
-
           {daftarObat.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left min-w-[500px]">
@@ -265,7 +265,7 @@ export default function CreateTransaksiDok() {
               <label htmlFor="jasa_medis" className="text-sm text-gray-600 dark:text-gray-300 flex-shrink-0">
                 Jasa Medis
               </label>
-              {sudahBayar ? (
+              {sudahDiajukan ? (
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">
                   {formatRupiah(existingTransaksi.jasa_medis)}
                 </p>
@@ -291,12 +291,12 @@ export default function CreateTransaksiDok() {
               <div className="flex items-center justify-between">
                 <p className="text-sm font-bold text-gray-900 dark:text-white">Total Tarif</p>
                 <p className="text-lg font-bold text-green-700 dark:text-green-400">
-                  {sudahBayar
+                  {sudahDiajukan
                     ? formatRupiah(existingTransaksi.total_tarif)
                     : formatRupiah(totalTarif)}
                 </p>
               </div>
-              {!sudahBayar && (
+              {!sudahDiajukan && (
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 text-right">
                   Total Obat + Jasa Medis
                 </p>
@@ -314,8 +314,8 @@ export default function CreateTransaksiDok() {
 
         {/* ── Aksi ── */}
         <div className="flex items-center justify-end gap-3">
-          {sudahBayar ? (
-            // Transaksi sudah dikonfirmasi → tampilkan tombol navigasi saja
+          {sudahDiajukan ? (
+            // Transaksi sudah diajukan → tampilkan tombol navigasi saja
             <>
               <Link
                 to="/dokter/pemeriksaan"
@@ -326,35 +326,26 @@ export default function CreateTransaksiDok() {
                 </svg>
                 Pemeriksaan
               </Link>
-              <Link
-                to="/dokter/transaksi"
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-green-600 dark:text-green-300 border border-green-200 dark:border-green-600 rounded-lg hover:bg-green-100 dark:hover:bg-green-700 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                </svg>
-                Transaksi
-              </Link>
             </>
           ) : (
-            // Transaksi belum dikonfirmasi → tampilkan tombol konfirmasi saja
+            // Transaksi belum diajukan → tampilkan tombol Kirim ke Admin
             <button
               type="button"
               onClick={handleSubmit}
               disabled={saving}
-              className="inline-flex items-center gap-2 px-6 py-2 text-sm font-semibold text-white bg-green-700 hover:bg-green-800 dark:bg-green-700 dark:hover:bg-green-600 rounded-lg transition-colors disabled:opacity-60 shadow-sm"
+              className="inline-flex items-center gap-2 px-6 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 rounded-lg transition-colors disabled:opacity-60 shadow-sm"
             >
               {saving ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Menyimpan...
+                  Mengirim...
                 </>
               ) : (
                 <>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                   </svg>
-                  Konfirmasi
+                  Kirim ke Admin
                 </>
               )}
             </button>

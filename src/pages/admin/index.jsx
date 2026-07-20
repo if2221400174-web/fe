@@ -22,6 +22,9 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [rawTransaksi, setRawTransaksi] = useState([]);
   const [rawPemeriksaan, setRawPemeriksaan] = useState([]);
+  
+  // STATE BARU: Untuk menyimpan antrean pasien yang belum dibayar
+  const [antreanTransaksi, setAntreanTransaksi] = useState([]);
 
   const getTodayString = () => new Date().toISOString().split("T")[0];
 
@@ -58,6 +61,24 @@ export default function Dashboard() {
         const transaksiHariIni = (transaksiData || []).filter((t) =>
           idPemeriksaanHariIni.has(t.pemeriksaan_idpemeriksaan)
         ).length;
+
+        // --- LOGIKA NOTIFIKASI ANTREAN (Sinkron 100% dengan AdminTransaksi) ---
+        // Mencari transaksi yang statusnya bukan "lunas"
+        const transaksiBelumLunas = (transaksiData || []).filter((t) => t.status !== "lunas");
+        
+        const antreanLengkap = transaksiBelumLunas.map((t) => {
+          return {
+            id: t.id,
+            pemeriksaan_id: t.pemeriksaan?.id || t.pemeriksaan_idpemeriksaan,
+            nama_pasien: t.pemeriksaan?.rekam_medis?.pasien?.nama || "Pasien Tidak Diketahui",
+            tanggal: t.created_at,
+          };
+        });
+
+        // Urutkan dari yang terbaru
+        antreanLengkap.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+        setAntreanTransaksi(antreanLengkap);
+        // ----------------------------------------------------------------------
 
         setStats({ totalPasien, totalObat, totalPendapatan, pemeriksaanHariIni, transaksiHariIni });
 
@@ -219,8 +240,54 @@ export default function Dashboard() {
           </span>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* ── BANNER NOTIFIKASI ANTREAN TRANSAKSI ── */}
+        {antreanTransaksi.length > 0 && (
+          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 sm:p-5 rounded-r-xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-amber-100 rounded-full flex-shrink-0 mt-1 sm:mt-0">
+                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-amber-900">
+                  Perhatian: Ada {antreanTransaksi.length} Tagihan Belum Dibayar!
+                </h3>
+                <p className="text-sm text-amber-700 mt-1">
+                  Terdapat transaksi dari dokter yang menunggu proses pelunasan Admin (Bisa langsung diklik):
+                </p>
+                <div className="mt-2.5 flex flex-wrap gap-2">
+                  {antreanTransaksi.slice(0, 3).map(p => (
+                    <Link 
+                      key={p.id}
+                      to={`/admin/transaksi/create/${p.pemeriksaan_id}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-semibold rounded-full border border-amber-200 transition-colors shadow-sm cursor-pointer"
+                      title="Klik untuk langsung membayar"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>
+                      {p.nama_pasien}
+                    </Link>
+                  ))}
+                  {antreanTransaksi.length > 3 && (
+                    <span className="inline-flex items-center px-3 py-1 bg-amber-100/50 text-amber-700 text-xs font-semibold rounded-full">
+                      +{antreanTransaksi.length - 3} lainnya
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <Link 
+              to="/admin/transaksi" 
+              className="flex-shrink-0 w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 px-5 rounded-lg transition-colors shadow-sm"
+            >
+              Lihat Semua Tagihan
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+            </Link>
+          </div>
+        )}
+        {/* ────────────────────────────────────────── */}
 
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Kartu Total Pasien */}
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
@@ -326,8 +393,8 @@ export default function Dashboard() {
             <p className="text-sm text-center text-gray-600 mt-1">Total Pendapatan</p>
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col h-full  overflow-hidden">
             <div className="mb-4">
               <h2 className="text-sm font-bold text-gray-800">Kunjungan Pasien 7 Hari Terakhir</h2>

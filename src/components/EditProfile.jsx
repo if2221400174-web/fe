@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getProfile, updateProfile } from "../_sevices/auth";
 import { userImageStorage } from "../_api";
 
 export default function EditProfile() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Ambil info user yang sedang login
   const rawUser = localStorage.getItem("userInfo");
@@ -38,7 +39,8 @@ export default function EditProfile() {
           username: data.username,
           email: data.email,
           password: "",
-          role: data.role,
+          // ILUSI 1: Tampilkan role di dropdown sesuai posisi halaman saat ini
+          role: isAdmin ? (location.pathname.includes("/dokter") ? "dokter" : "admin") : data.role,
           foto: null,
         });
 
@@ -56,7 +58,7 @@ export default function EditProfile() {
       }
     };
     fetchProfile();
-  }, [navigate]);
+  }, [navigate, isAdmin, location.pathname]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -121,10 +123,13 @@ export default function EditProfile() {
 
       alert("Profil berhasil diperbarui!");
 
-      // Arahkan berdasarkan role
-      const role = res.role; // ambil role dari response terbaru
-      if (role === "admin") {
-        navigate({ pathname: "/admin" });
+      // ILUSI 2: Arahkan navigasi berdasarkan pilihan dropdown (bukan database)
+      if (isAdmin) {
+        if (formData.role === "admin") {
+          navigate({ pathname: "/admin" });
+        } else {
+          navigate({ pathname: "/dokter" });
+        }
       } else {
         navigate({ pathname: "/dokter" });
       }
@@ -225,6 +230,7 @@ export default function EditProfile() {
                   required
                 />
               </div>
+              
               {/* Email */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
@@ -252,6 +258,8 @@ export default function EditProfile() {
                   required
                 />
               </div>
+              
+              {/* Role Dropdown */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
@@ -264,13 +272,12 @@ export default function EditProfile() {
                       Role
                     </label>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {isAdmin ? "Pilih role pengguna" : "Role tidak dapat diubah di halaman ini"}
+                      {isAdmin ? "Pilih peran Anda saat ini" : "Role tidak dapat diubah di halaman ini"}
                     </p>
                   </div>
                 </div>
 
                 {isAdmin ? (
-                  // hanya admin yang bisa edit role
                   <select
                     name="role"
                     id="role"
@@ -282,7 +289,6 @@ export default function EditProfile() {
                     <option value="dokter">Dokter</option>
                   </select>
                 ) : (
-                  // Non-admin hanya bisa lihat
                   <div className="flex items-center gap-3 p-3 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 capitalize">
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -299,6 +305,7 @@ export default function EditProfile() {
                   </div>
                 )}
               </div>
+              
               {/* Update Password Toggle */}
               <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
                 <input
