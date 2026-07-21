@@ -67,6 +67,13 @@ export default function AdminTransaksi() {
     return obatList.reduce((sum, h) => sum + h, 0);
   };
 
+  // MENGHITUNG TOTAL PENGHASILAN (Hanya yang Status Lunas)
+  const totalPendapatanSeluruh = useMemo(() => {
+    return transaksiList
+      .filter(t => t.status === "lunas")
+      .reduce((sum, t) => sum + Number(t.total_tarif || 0), 0);
+  }, [transaksiList]);
+
   // --- LOGIKA FILTER & PEMBERITAHUAN ---
   const belumLunasCount = transaksiList.filter(t => t.status !== "lunas").length;
 
@@ -274,10 +281,11 @@ export default function AdminTransaksi() {
           </div>
         )}
 
-        {/* Judul & Action Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+        {/* ─── PERBAIKAN LAYOUT HEADER (PRESISI & ADAPTIF) ─── */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-5">
+          {/* Sisi Kiri (Title) */}
+          <div className="text-center md:text-left flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1.5">
               Data Transaksi
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -285,23 +293,39 @@ export default function AdminTransaksi() {
             </p>
           </div>
           
-          <button
-            onClick={() => setShowExportModal(true)}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Export / Cetak Laporan
-          </button>
+          {/* Sisi Kanan (Badge + Tombol) */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full md:w-auto">
+            {/* BADGE TOTAL PENGHASILAN */}
+            <div className="flex items-center justify-center gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-4 py-2.5 rounded-xl shadow-sm w-full sm:w-auto">
+              <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </div>
+              <div className="text-left">
+                <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wide">Total Pendapatan</p>
+                <p className="text-base font-extrabold text-green-700 dark:text-green-400 leading-none mt-0.5">{formatRupiah(totalPendapatanSeluruh)}</p>
+              </div>
+            </div>
+
+            {/* BUTTON EXPORT */}
+            <button
+              onClick={() => setShowExportModal(true)}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm w-full sm:w-auto"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Cetak Laporan
+            </button>
+          </div>
         </div>
 
-        {/* Toggle View Mode, Filter Status & Search */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
-          <div className="flex bg-gray-200 dark:bg-gray-800 p-1 rounded-lg w-fit">
+        {/* ─── PERBAIKAN LAYOUT FILTER (PRESISI & ADAPTIF) ─── */}
+        <div className="flex flex-col lg:flex-row justify-between items-center gap-4 mb-6">
+          {/* Toggle Button */}
+          <div className="flex bg-gray-200 dark:bg-gray-800 p-1 rounded-xl w-full lg:w-auto">
             <button
               onClick={() => setViewMode("semua")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+              className={`flex-1 lg:flex-none px-6 py-2.5 text-sm font-medium rounded-lg transition-all ${
                 viewMode === "semua"
                   ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
                   : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -311,7 +335,7 @@ export default function AdminTransaksi() {
             </button>
             <button
               onClick={() => setViewMode("perPasien")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+              className={`flex-1 lg:flex-none px-6 py-2.5 text-sm font-medium rounded-lg transition-all ${
                 viewMode === "perPasien"
                   ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
                   : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -322,11 +346,10 @@ export default function AdminTransaksi() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-            {/* Dropdown Filter Status */}
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-shadow"
+              className="w-full sm:w-auto px-4 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-shadow text-center sm:text-left"
             >
               <option value="semua">Semua Status</option>
               <option value="belum_bayar">Hanya Belum Lunas</option>
@@ -339,9 +362,9 @@ export default function AdminTransaksi() {
                 placeholder="Cari nama pasien..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-shadow"
+                className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-shadow"
               />
-              <svg className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
             </div>
@@ -353,7 +376,6 @@ export default function AdminTransaksi() {
           /* TABEL SEMUA TRANSAKSI */
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
             <div className="overflow-x-auto scrollbar-thin">
-              {/* NOTE: Lebar minimum 950px agar rapi tidak berdesakan */}
               <table className="w-full text-sm text-left" style={{ minWidth: "950px" }}>
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
@@ -418,26 +440,26 @@ export default function AdminTransaksi() {
             {filteredPerPasien.length > 0 ? (
               filteredPerPasien.map((pasien) => (
                 <div key={pasien.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-                  {/* Header Card */}
-                  <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 bg-gray-50/50 dark:bg-gray-800/50">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-lg">
+                  
+                  {/* Header Card (Sudah diperkecil dan dirapikan) */}
+                  <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gray-50/50 dark:bg-gray-800/50">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-sm shadow-sm">
                         {pasien.nama.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">{pasien.nama}</h3>
-                        <p className="text-sm text-gray-500">{pasien.transaksi.length} Transaksi</p>
+                        <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white leading-tight">{pasien.nama}</h3>
+                        <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5">{pasien.transaksi.length} Riwayat Transaksi</p>
                       </div>
                     </div>
-                    <div className="text-left sm:text-right mt-2 sm:mt-0">
-                      <p className="text-sm text-gray-500">Total Tarif Pasien Ini</p>
-                      <p className="text-lg font-bold text-green-600 dark:text-green-400">{formatRupiah(pasien.totalSemua)}</p>
+                    <div className="w-full sm:w-auto flex justify-between sm:block border-t sm:border-t-0 border-gray-200 dark:border-gray-700 pt-2.5 sm:pt-0">
+                      <p className="text-[11px] sm:text-xs text-gray-500 sm:text-right font-medium">Total Tarif Pasien</p>
+                      <p className="text-sm sm:text-base font-bold text-green-600 dark:text-green-400 sm:text-right">{formatRupiah(pasien.totalSemua)}</p>
                     </div>
                   </div>
 
                   {/* Tabel Kecil di dalam Card */}
                   <div className="overflow-x-auto p-4 scrollbar-thin">
-                    {/* INI KUNCI PERBAIKANNYA: minWidth 750px agar tabel horizontal lurus (bisa discroll) dan tidak gepeng-gepeng lagi */}
                     <table className="w-full text-sm text-left" style={{ minWidth: "750px" }}>
                       <thead>
                         <tr className="text-gray-400 border-b border-gray-100 dark:border-gray-700 pb-2">
@@ -504,7 +526,6 @@ export default function AdminTransaksi() {
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 border-b pb-2 dark:border-gray-700">Export / Cetak Laporan</h3>
             
             <div className="space-y-4">
-              {/* Format File */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pilih Format</label>
                 <div className="flex gap-4 flex-wrap">
@@ -523,7 +544,6 @@ export default function AdminTransaksi() {
                 </div>
               </div>
 
-              {/* Rentang Waktu */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rentang Waktu</label>
                 <select value={exportPeriod} onChange={(e) => setExportPeriod(e.target.value)} className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-shadow">
@@ -533,7 +553,6 @@ export default function AdminTransaksi() {
                 </select>
               </div>
 
-              {/* Input Bulan */}
               {exportPeriod === "bulanan" && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pilih Bulan</label>
@@ -554,7 +573,6 @@ export default function AdminTransaksi() {
                 </div>
               )}
 
-              {/* Input Tahun */}
               {(exportPeriod === "bulanan" || exportPeriod === "tahunan") && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pilih Tahun</label>
