@@ -2,32 +2,25 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { showPasien, updatePasien } from "../../../_sevices/pasien";
 
-
 const BASE_URL = "https://www.emsifa.com/api-wilayah-indonesia/api";
 
-// Mengambil daftar seluruh provinsi di Indonesia
 const fetchProvinsi = () =>
   fetch(`${BASE_URL}/provinces.json`).then((r) => r.json());
 
-// Mengambil daftar kabupaten/kota berdasarkan ID provinsi
 const fetchKabupaten = (id) =>
   fetch(`${BASE_URL}/regencies/${id}.json`).then((r) => r.json());
 
-// Mengambil daftar kecamatan berdasarkan ID kabupaten/kota
 const fetchKecamatan = (id) =>
   fetch(`${BASE_URL}/districts/${id}.json`).then((r) => r.json());
 
-// Mengambil daftar desa/kelurahan berdasarkan ID kecamatan
 const fetchDesa = (id) =>
   fetch(`${BASE_URL}/villages/${id}.json`).then((r) => r.json());
 
 const toTitleCase = (str) =>
   str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 
-// Daftar pilihan negara dan jenis kelamin
 const NEGARA_LIST = ["Indonesia"];
 const JENIS_KELAMIN_LIST = ["Laki-laki", "Perempuan"];
-
 
 function SearchableSelect({
   options = [],
@@ -40,24 +33,15 @@ function SearchableSelect({
   required,
 }) {
   const [query, setQuery] = useState("");
-
   const [open, setOpen] = useState(false);
-
   const [isManual, setIsManual] = useState(false);
-
   const [manualValue, setManualValue] = useState("");
-
   const containerRef = useRef(null);
-
   const inputRef = useRef(null);
 
-
   const selected = options.find((o) => o.id === value);
-
   const displayLabel = selected ? toTitleCase(selected.name) : "";
-
   const isManualSelected = value === "__manual__";
-
   const filtered = query
     ? options.filter((o) => o.name.toLowerCase().includes(query.toLowerCase()))
     : options;
@@ -113,7 +97,6 @@ function SearchableSelect({
           type="text"
           value={manualValue}
           onChange={(e) => setManualValue(e.target.value)}
-
           onKeyDown={(e) =>
             e.key === "Enter" && (e.preventDefault(), handleManualSubmit())
           }
@@ -140,7 +123,6 @@ function SearchableSelect({
     );
   }
 
-  // Tampilan dropdown utama
   return (
     <div ref={containerRef} className="relative">
       <button
@@ -151,7 +133,6 @@ function SearchableSelect({
           open ? "border-green-500 ring-2 ring-green-500" : "border-gray-300"
         } text-sm rounded-lg flex items-center w-full p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-left`}
       >
-        {/* Tampilkan spinner saat data sedang dimuat */}
         {isLoading ? (
           <span className="text-gray-400 flex-1 flex items-center gap-2">
             <svg
@@ -196,7 +177,6 @@ function SearchableSelect({
 
       {open && (
         <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg overflow-hidden">
-
           <div className="p-2 border-b border-gray-100 dark:border-gray-700">
             <div className="relative">
               <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -282,6 +262,7 @@ export default function EditPasien() {
 
   const [formData, setFormData] = useState({
     nama: "",
+    no_wa: "", // <--- 1. DITAMBAHKAN
     tanggal_lahir: "",
     jenis_kelamin: "",
     negara: "Indonesia",
@@ -314,8 +295,6 @@ export default function EditPasien() {
   });
 
   const [isPageLoading, setIsPageLoading] = useState(true);
-
-
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -329,6 +308,7 @@ export default function EditPasien() {
 
         setFormData({
           nama: data.nama || "",
+          no_wa: data.no_wa || "", // <--- 2. DITAMBAHKAN (Menarik data dari database)
           tanggal_lahir: data.tanggal_lahir || "",
           jenis_kelamin: data.jenis_kelamin || "",
           negara: negara || "Indonesia",
@@ -421,7 +401,6 @@ export default function EditPasien() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
 
   const handleNegara = (e) => {
     const value = e.target.value;
@@ -532,6 +511,7 @@ export default function EditPasien() {
 
     const submitData = {
       nama: formData.nama,
+      no_wa: formData.no_wa, // <--- 3. DITAMBAHKAN (Kirim ke backend)
       alamat: buildAlamat(),
       tanggal_lahir: formData.tanggal_lahir,
       jenis_kelamin: formData.jenis_kelamin,
@@ -567,6 +547,7 @@ export default function EditPasien() {
     setFormData((prev) => ({
       ...prev,
       nama: "",
+      no_wa: "", // <--- 4. DITAMBAHKAN
       tanggal_lahir: "",
       jenis_kelamin: "",
       detail_alamat: "",
@@ -668,6 +649,34 @@ export default function EditPasien() {
                   required
                 />
               </div>
+
+              {/* ---> 5. TAMBAHAN TAMPILAN NO WA <--- */}
+              <div className="mt-4 mb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <FieldIcon>
+                    {/* Ikon Telepon */}
+                    <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                    </svg>
+                  </FieldIcon>
+                  <div>
+                    <label htmlFor="no_wa" className="block text-sm font-semibold text-gray-900 dark:text-white">
+                      Nomor WhatsApp
+                    </label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Gunakan format 08xxx atau 628xxx (Boleh kosong)</p>
+                  </div>
+                </div>
+                <input
+                  type="text"
+                  name="no_wa"
+                  id="no_wa"
+                  value={formData.no_wa}
+                  onChange={handleChange}
+                  className={inputClass}
+                  placeholder="cth. 081234567890"
+                />
+              </div>
+              {/* ---> AKHIR TAMBAHAN TAMPILAN <--- */}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Tanggal Lahir */}

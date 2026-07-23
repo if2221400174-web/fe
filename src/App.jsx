@@ -26,6 +26,7 @@ import RekamMedisPasienDok from "./pages/dokter/rekam_medis"
 import DokterPemeriksaan from "./pages/dokter/pemeriksaan"
 import CreatePemeriksaanDok from "./pages/dokter/pemeriksaan/create"
 import CreateTransaksiDok from "./pages/dokter/transaksi/create"
+import DokumenPublik from "./components/DokumenPublik"
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
       <Routes>
         {/* public */}
         <Route path="/login" element={<Login />} />
+        <Route path="/dokumen/:kode_rm" element={<DokumenPublik/>} />
 
         {/* admin */}
         <Route path="/admin" element={<AdminLayout />}>

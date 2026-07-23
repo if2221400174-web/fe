@@ -43,3 +43,12 @@ export const deletePasien = async (id)=>{
     throw error
   }
 }
+export const getDokumenPublik = async (kode_rm) => {
+  try {
+    const response = await API.get(`/publik/dokumen/${kode_rm}`)
+    return response.data
+  } catch (error) {
+    console.log(error);
+    throw error
+  }
+}
