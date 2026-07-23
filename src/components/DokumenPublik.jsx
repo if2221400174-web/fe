@@ -100,14 +100,9 @@ export default function DokumenPublik() {
             
             <div className="relative z-10 flex items-center justify-between">
               <div>
-                <p className="text-green-300 text-xs font-bold tracking-wider uppercase mb-1 drop-shadow-sm">Selamat Datang di</p>
-                <h1 className="text-2xl font-black tracking-wide text-white drop-shadow-md">{KLINIK_INFO.namaKlinik}</h1>
-                <p className="text-green-100 text-sm font-semibold mt-1 drop-shadow-sm">{KLINIK_INFO.namaDokter}</p>
-              </div>
-              <div className="bg-white/10 p-2.5 rounded-2xl backdrop-blur-sm border border-white/30 shadow-inner">
-                <svg viewBox="0 0 24 24" fill="none" className="w-10 h-10">
-                  <path d="M12 2a2 2 0 012 2v6h6a2 2 0 012 2v0a2 2 0 01-2 2h-6v6a2 2 0 01-2 2v0a2 2 0 01-2-2v-6H4a2 2 0 01-2-2v0a2 2 0 012-2h6V4a2 2 0 012-2z" fill="#ffffff" />
-                </svg>
+                <p className="text-green-600 text-xs font-bold tracking-wider uppercase mb-1 drop-shadow-sm">Selamat Datang di</p>
+                <h1 className="text-2xl font-black tracking-wide text-green-600  drop-shadow-md">{KLINIK_INFO.namaKlinik}</h1>
+                <p className="text-green-600 text-sm font-semibold mt-1 drop-shadow-sm">{KLINIK_INFO.namaDokter}</p>
               </div>
             </div>
           </div>
@@ -208,7 +203,7 @@ export default function DokumenPublik() {
               
               <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200 text-center shadow-sm">
                  <p className="text-sm text-blue-900 font-semibold leading-relaxed">
-                   Klik tombol <span className="font-bold text-blue-950 bg-blue-100 px-2 py-0.5 rounded shadow-sm mx-1">Simpan Ke Galeri</span> di atas untuk mengunduh kartu ini, lalu tunjukkan saat Anda berkunjung ke Praktek.
+                   Klik tombol <span className="font-bold text-blue-950 bg-blue-100 px-2 py-0.5 rounded shadow-sm mx-1">Simpan Ke Galeri</span> di atas untuk mengunduh kartu ini, lalu tunjukkan saat Anda berkunjung ke Praktek Dokter Umum dr. Rowi.
                  </p>
               </div>
             </div>
@@ -216,8 +211,8 @@ export default function DokumenPublik() {
           
           {/* FOOTER */}
           <div className="bg-gray-100 py-6 text-center border-t border-gray-300 mt-auto flex-shrink-0">
-            <p className="text-xs font-bold text-gray-600">© {new Date().getFullYear()} {KLINIK_INFO.namaKlinik}</p>
-            <p className="text-[11px] font-semibold text-gray-500 mt-1">Sistem Informasi Manajemen Praktek Dokter Umum Digital</p>
+            <p className="text-xs font-bold text-gray-600">© {new Date().getFullYear()} {KLINIK_INFO.namaKlinik}{KLINIK_INFO.namaDokter}</p>
+            <p className="text-[11px] font-semibold text-gray-500 mt-1">Sistem Informasi Manajemen Praktek Dokter Umum dr. Rowi Digital</p>
           </div>
         </div>
       </div>

@@ -109,7 +109,7 @@ export default function AdminPasien() {
     }
     
     const docUrl = `${window.location.origin}/dokumen/${patient.kode_rekammedis}`;
-    const message = `Halo Bapak/Ibu *${patient.nama}*,\n\nBerikut adalah *Smart Link* untuk mengakses *Kartu Berobat Digital* Anda di ${KLINIK_INFO.namaKlinik} (${KLINIK_INFO.namaDokter}):\n\n🔗 ${docUrl}\n\n_Harap simpan link ini dan tunjukkan Kartu Berobat Anda saat melakukan kunjungan berikutnya. Terima kasih dan semoga sehat selalu._`;
+    const message = `Halo Bapak/Ibu: *${patient.nama}*,\n\nBerikut adalah *Link* untuk mengakses *Kartu Berobat Digital* Anda di ${KLINIK_INFO.namaKlinik} ${KLINIK_INFO.namaDokter}:\n\n🔗 ${docUrl}\n\n_Harap simpan download e-kartu tersebut dan tunjukkan Kartu Berobat Anda saat melakukan kunjungan berikutnya. Terima kasih dan semoga sehat selalu._`;
     const encodedMessage = encodeURIComponent(message);
     
     let formattedNumber = patient.no_wa.replace(/\D/g, "");
