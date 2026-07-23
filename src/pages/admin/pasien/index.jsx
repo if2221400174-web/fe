@@ -589,11 +589,11 @@ export default function AdminPasien() {
               </div>
             </div>
 
-            <div className="kartu-modal-actions">
+            <div className="kartu-modal-actions flex gap-3 mt-4">
               <button
                 onClick={handleDownloadGambar}
                 disabled={isDownloading}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-green-700 hover:bg-green-800 rounded-lg disabled:opacity-60 transition-all duration-200"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 hover:text-green-800 border border-green-200 rounded-lg disabled:opacity-60 transition-all duration-200 shadow-sm"
               >
                 {isDownloading ? (
                   <>
@@ -601,16 +601,27 @@ export default function AdminPasien() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                     </svg>
-                    Membuat gambar...
+                    Memproses...
                   </>
                 ) : (
                   <>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
-                    Unduh Gambar
+                    Unduh
                   </>
                 )}
+              </button>
+
+              <button
+                onClick={() => handleKirimWA(cardPasien)}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-all duration-200 shadow-sm"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                  <path d="M12 2C6.477 2 2 6.477 2 12c0 1.756.455 3.407 1.258 4.849L2 22l5.311-1.22A9.957 9.957 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.25c-1.503 0-2.93-.385-4.199-1.077l-.3-.164-3.118.718.73-3.036-.18-.287A8.22 8.22 0 013.75 12c0-4.549 3.701-8.25 8.25-8.25S20.25 7.451 20.25 12 16.549 20.25 12 20.25z"/>
+                </svg>
+                Kirim WA
               </button>
             </div>
           </div>
