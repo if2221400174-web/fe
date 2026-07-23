@@ -99,30 +99,24 @@ export default function AdminPasien() {
 
   // --- LOGIKA MENGIRIM LINK WA ---
   const handleKirimWA = (patient) => {
-    // 1. Cek Kode RM
     if (!patient.kode_rekammedis) {
       alert("Pasien ini belum memiliki Kode Rekam Medis!");
       return;
     }
-
-    // 2. KONDISI WAJIB: Cek apakah pasien punya nomor WA
     if (!patient.no_wa || patient.no_wa.trim() === "") {
       alert(`Pemberitahuan: Pasien atas nama ${patient.nama} tidak memiliki nomor WhatsApp yang terdaftar. Tidak dapat mengirim link.`);
       return;
     }
     
-    // 3. Rangkai teks pesan (Fokus HANYA pada Kartu Berobat)
     const docUrl = `${window.location.origin}/dokumen/${patient.kode_rekammedis}`;
     const message = `Halo Bapak/Ibu *${patient.nama}*,\n\nBerikut adalah *Smart Link* untuk mengakses *Kartu Berobat Digital* Anda di ${KLINIK_INFO.namaKlinik} (${KLINIK_INFO.namaDokter}):\n\n🔗 ${docUrl}\n\n_Harap simpan link ini dan tunjukkan Kartu Berobat Anda saat melakukan kunjungan berikutnya. Terima kasih dan semoga sehat selalu._`;
     const encodedMessage = encodeURIComponent(message);
     
-    // 4. Perbaiki format nomor WA (ubah awalan 0 menjadi 62)
-    let formattedNumber = patient.no_wa.replace(/\D/g, ""); // Hilangkan spasi atau tanda hubung
+    let formattedNumber = patient.no_wa.replace(/\D/g, "");
     if (formattedNumber.startsWith("0")) {
       formattedNumber = "62" + formattedNumber.substring(1);
     }
 
-    // 5. Buka tab WhatsApp
     const waUrl = `https://wa.me/${formattedNumber}?text=${encodedMessage}`;
     window.open(waUrl, "_blank");
   };
@@ -276,7 +270,7 @@ export default function AdminPasien() {
                         <span>Rekam Medis</span>
                       </Link>
                       
-                      <div className="grid grid-cols-2 gap-1.5 w-full">
+                      <div className="w-full">
                         <button
                           onClick={() => handlePanggilKeRuangPeriksa(p.id, p.nama)}
                           disabled={callingId === p.id}
@@ -287,18 +281,6 @@ export default function AdminPasien() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                           </svg>
                           <span>{callingId === p.id ? "Mengirim..." : "Kirim Antrean"}</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleKirimWA(p)}
-                          title="Kirim Link Dokumen via WA"
-                          className="w-full flex items-center justify-center gap-1.5 py-2 px-2 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-md transition-colors"
-                        >
-                          <svg className="w-4 h-4 flex-shrink-0 hidden lg:inline" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                            <path d="M12 2C6.477 2 2 6.477 2 12c0 1.756.455 3.407 1.258 4.849L2 22l5.311-1.22A9.957 9.957 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.25c-1.503 0-2.93-.385-4.199-1.077l-.3-.164-3.118.718.73-3.036-.18-.287A8.22 8.22 0 013.75 12c0-4.549 3.701-8.25 8.25-8.25S20.25 7.451 20.25 12 16.549 20.25 12 20.25z"/>
-                          </svg>
-                          <span>Kirim WA</span>
                         </button>
                       </div>
                     </div>
@@ -373,7 +355,7 @@ export default function AdminPasien() {
                     <col style={{ width: "200px" }} />
                     <col style={{ width: "80px" }} />
                     <col style={{ width: "100px" }} />
-                    <col style={{ width: "310px" }} /> {/* Lebar kolom aksi disesuaikan */}
+                    <col style={{ width: "250px" }} /> {/* Lebar kolom aksi dikurangi sedikit karena tombol WA dihapus */}
                   </colgroup>
                   <thead className="text-sm text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
@@ -445,19 +427,6 @@ export default function AdminPasien() {
                                 <span className="hidden sm:inline">
                                   {callingId === p.id ? "..." : "Dokter"}
                                 </span>
-                              </button>
-
-                              {/* TOMBOL KIRIM WA UNTUK TABEL */}
-                              <button
-                                onClick={() => handleKirimWA(p)}
-                                title="Kirim Link Dokumen via WA"
-                                className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 rounded-md transition-colors duration-150 whitespace-nowrap"
-                              >
-                                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                                  <path d="M12 2C6.477 2 2 6.477 2 12c0 1.756.455 3.407 1.258 4.849L2 22l5.311-1.22A9.957 9.957 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.25c-1.503 0-2.93-.385-4.199-1.077l-.3-.164-3.118.718.73-3.036-.18-.287A8.22 8.22 0 013.75 12c0-4.549 3.701-8.25 8.25-8.25S20.25 7.451 20.25 12 16.549 20.25 12 20.25z"/>
-                                </svg>
-                                <span className="hidden xl:inline">WA</span>
                               </button>
 
                               <Link
